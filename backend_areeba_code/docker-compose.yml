@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  timetable-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: timetable-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./validated:/app/validated
+      - ./output:/app/output
+    environment:
+      - TZ=UTC
+    restart: unless-stopped 

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable Generation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .step h2 {
+            margin-top: 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .file-input {
+            margin-bottom: 10px;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .files-list {
+            margin-top: 10px;
+        }
+        .files-list a {
+            display: block;
+            margin-bottom: 5px;
+            color: #337ab7;
+            text-decoration: none;
+        }
+        .files-list a:hover {
+            text-decoration: underline;
+        }
+        .workflow {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .workflow-step {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin: 0 5px;
+            position: relative;
+        }
+        .workflow-step::after {
+            content: "→";
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #666;
+        }
+        .workflow-step:last-child::after {
+            content: "";
+        }
+        .instruction {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Timetable Generation System</h1>
+    
+    <div class="workflow">
+        <div class="workflow-step">
+            <h3>1. Upload</h3>
+            <p>Excel File</p>
+        </div>
+        <div class="workflow-step">
+            <h3>2. Validate</h3>
+            <p>Process Data</p>
+        </div>
+        <div class="workflow-step">
+            <h3>3. Generate</h3>
+            <p>Timetable</p>
+        </div>
+        <div class="workflow-step">
+            <h3>4. Download</h3>
+            <p>Results</p>
+        </div>
+    </div>
+    
+    <div class="instruction">
+        <p><strong>Instructions:</strong> Upload an Excel file with sheets for Faculty, Rooms, Time Slots, Courses, and Students. The system will validate the data, generate a timetable, and provide downloadable results.</p>
+    </div>
+    
+    <div class="step" id="step1">
+        <h2>Step 1: Upload Excel File</h2>
+        <p>Upload an Excel file with the following sheets: Faculty, Rooms, Time Slots, Courses, and Students.</p>
+        <form id="excelUploadForm">
+            <div class="file-input">
+                <label for="excelFile">Excel File:</label>
+                <input type="file" id="excelFile" name="excelFile" accept=".xlsx, .xls" required>
+            </div>
+            <button type="submit" id="excelUploadButton">Upload Excel File</button>
+        </form>
+        <div id="excelUploadStatus" class="status"></div>
+    </div>
+    
+    <div class="step" id="step2">
+        <h2>Step 2: Validate Excel Data</h2>
+        <p>Process the Excel file to extract and validate data for timetable generation.</p>
+        <button id="validateExcelButton" disabled>Validate Excel Data</button>
+        <div id="validateExcelStatus" class="status"></div>
+    </div>
+    
+    <div class="step" id="step3">
+        <h2>Step 3: Generate Timetable</h2>
+        <p>Generate a timetable based on the validated data.</p>
+        <button id="generateButton" disabled>Generate Timetable</button>
+        <div id="generateStatus" class="status"></div>
+    </div>
+    
+    <div class="step" id="step4">
+        <h2>Step 4: Download Files</h2>
+        <p>Download the generated timetable and view any conflicts.</p>
+        <button id="checkStatusButton" disabled>Download Files</button>
+        <div id="filesStatus" class="status"></div>
+        <div id="filesList" class="files-list"></div>
+    </div>
+    
+    <script>
+        // Base API URL
+        const API_URL = '';
+        
+        // Elements
+        const excelUploadForm = document.getElementById('excelUploadForm');
+        const excelUploadButton = document.getElementById('excelUploadButton');
+        const excelUploadStatus = document.getElementById('excelUploadStatus');
+        const validateExcelButton = document.getElementById('validateExcelButton');
+        const validateExcelStatus = document.getElementById('validateExcelStatus');
+        const generateButton = document.getElementById('generateButton');
+        const generateStatus = document.getElementById('generateStatus');
+        const checkStatusButton = document.getElementById('checkStatusButton');
+        const filesStatus = document.getElementById('filesStatus');
+        const filesList = document.getElementById('filesList');
+        
+        let uploadedFilename = null;
+        
+        // Upload Excel file
+        excelUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            excelUploadStatus.innerHTML = 'Uploading Excel file... <div class="loading"></div>';
+            excelUploadStatus.className = 'status';
+            excelUploadButton.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('excel_file', document.getElementById('excelFile').files[0]);
+            
+            try {
+                const response = await fetch(`${API_URL}/upload-excel/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    uploadedFilename = data.filename;
+                    excelUploadStatus.textContent = data.message;
+                    excelUploadStatus.className = 'status success';
+                    validateExcelButton.disabled = false;
+                } else {
+                    const error = await response.json();
+                    excelUploadStatus.textContent = `Error: ${error.detail}`;
+                    excelUploadStatus.className = 'status error';
+                    excelUploadButton.disabled = false;
+                }
+            } catch (error) {
+                excelUploadStatus.textContent = `Error: ${error.message}`;
+                excelUploadStatus.className = 'status error';
+                excelUploadButton.disabled = false;
+            }
+        });
+        
+        // Validate Excel data
+        validateExcelButton.addEventListener('click', async () => {
+            validateExcelStatus.innerHTML = 'Validating Excel data... <div class="loading"></div>';
+            validateExcelStatus.className = 'status';
+            validateExcelButton.disabled = true;
+            try {
+                const formData = new FormData();
+                formData.append('filename', uploadedFilename);
+                const response = await fetch(`${API_URL}/validate-excel/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    validateExcelStatus.textContent = data.message;
+                    validateExcelStatus.className = 'status success';
+                    generateButton.disabled = false;
+                } else {
+                    const error = await response.json();
+                    validateExcelStatus.textContent = `Error: ${error.detail}`;
+                    validateExcelStatus.className = 'status error';
+                    validateExcelButton.disabled = false;
+                }
+            } catch (error) {
+                validateExcelStatus.textContent = `Error: ${error.message}`;
+                validateExcelStatus.className = 'status error';
+                validateExcelButton.disabled = false;
+            }
+        });
+        
+        // Generate timetable
+        generateButton.addEventListener('click', async () => {
+            generateStatus.innerHTML = 'Generating timetable... <div class="loading"></div>';
+            generateStatus.className = 'status';
+            generateButton.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('filename', uploadedFilename);
+                const response = await fetch(`${API_URL}/generate-timetable/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    generateStatus.textContent = data.message;
+                    generateStatus.className = 'status success';
+                    checkStatusButton.disabled = false;
+                } else {
+                    const error = await response.json();
+                    generateStatus.textContent = `Error: ${error.detail}`;
+                    generateStatus.className = 'status error';
+                    generateButton.disabled = false;
+                }
+            } catch (error) {
+                generateStatus.textContent = `Error: ${error.message}`;
+                generateStatus.className = 'status error';
+                generateButton.disabled = false;
+            }
+        });
+        
+        // Check status and available files
+        checkStatusButton.addEventListener('click', async () => {
+            filesStatus.innerHTML = 'Checking status... <div class="loading"></div>';
+            filesStatus.className = 'status';
+            
+            try {
+                const response = await fetch(`${API_URL}/status/?filename=${encodeURIComponent(uploadedFilename)}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.timetable_generated) {
+                        filesStatus.textContent = 'Timetable generation completed. Files available for download:';
+                        filesStatus.className = 'status success';
+                        
+                        filesList.innerHTML = '';
+                        data.files_available.forEach(file => {
+                            const link = document.createElement('a');
+                            link.href = `${API_URL}/download/${file}`;
+                            link.textContent = file;
+                            link.target = '_blank';
+                            filesList.appendChild(link);
+                        });
+                    } else {
+                        filesStatus.textContent = 'Timetable generation in progress or not yet completed.';
+                        filesStatus.className = 'status';
+                        filesList.innerHTML = '';
+                    }
+                } else {
+                    const error = await response.json();
+                    filesStatus.textContent = `Error: ${error.detail}`;
+                    filesStatus.className = 'status error';
+                }
+            } catch (error) {
+                filesStatus.textContent = `Error: ${error.message}`;
+                filesStatus.className = 'status error';
+            }
+        });
+    </script>
+</body>
+</html> 
