@@ -130,136 +130,6 @@ rooms = rooms_df.sort_values("Room_Capacity").to_dict("records")
 schedule = schedule_df.to_dict("records")
 courses = expanded_courses
 
-# Cache for faculty assignments
-faculty_assignment_cache = {}
-
-def clear_faculty_caches():
-    faculty_assignment_cache.clear()
-
-def count_faculty_assignments(timetable, faculty_id):
-    cache_key = (id(timetable), faculty_id)
-    if cache_key not in faculty_assignment_cache:
-        unique_courses = set()
-        for (course_name, section, _), details in timetable.items():
-            if details['FacultyID'] == faculty_id:
-                # Count each section as a separate course
-                unique_courses.add((course_name, section))
-        faculty_assignment_cache[cache_key] = len(unique_courses)
-    return faculty_assignment_cache[cache_key]
-
-# Cache for room and timeslot availability
-room_timeslot_cache = {}
-def update_room_timeslot_cache(timetable):
-    room_timeslot_cache.clear()
-    for details in timetable.values():
-        room = details['Room']
-        if room not in room_timeslot_cache:
-            room_timeslot_cache[room] = set()
-        for t in details['Times']:
-            room_timeslot_cache[room].add((t['Day'], t['Start_Time']))
-
-# Cache for faculty and section time conflicts
-faculty_time_cache = {}
-section_time_cache = {}
-
-def update_time_conflict_caches(timetable):
-    faculty_time_cache.clear()
-    section_time_cache.clear()
-    
-    for (_, section, _), details in timetable.items():
-        faculty_id = details['FacultyID']
-        if faculty_id not in faculty_time_cache:
-            faculty_time_cache[faculty_id] = set()
-        if section not in section_time_cache:
-            section_time_cache[section] = set()
-            
-        for t in details['Times']:
-            time_key = (t['Day'], t['Start_Time'])
-            faculty_time_cache[faculty_id].add(time_key)
-            section_time_cache[section].add(time_key)
-
-# Pre-compute faculty course assignments and ratings
-faculty_course_assignments = {}
-for f in faculty:
-    faculty_course_assignments[f['Faculty_ID']] = {
-        'courses': set(f['Processed_Courses']),
-        'ratings': f['Courses_Assigned'],
-        'max_courses': 3,
-        'name': f['Faculty_Name'],
-        'current_courses': set(),
-        'current_sections': 0
-    }
-
-# Pre-compute course base names and IDs
-course_info_cache = {}
-for course in courses:
-    base_name = course['Course_Name'].rsplit('-', 1)[0]
-    course_info_cache[course['Course_Name']] = {
-        'base_name': base_name,
-        'course_id': course['Course_ID'],
-        'requirements': {
-            'capacity': course['Capacity'],
-            'duration': course['Duration'],
-            'weekdays': course['Weekdays'],
-            'type': course['Course_Type']
-        }
-    }
-
-def is_consistent(timetable, selected_times, room, faculty_id, section, course_type, conflicts, course_name, day):
-    # Check room type constraints first (fastest check)
-    if course_type == "Lab" and room["Room_Type"] != "Lab":
-        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lab Course Assigned to Non-Lab Room"})
-        return False
-    if course_type != "Lab" and room["Room_Type"] != "Lecture":
-        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lecture Course Assigned to Lab Room"})
-        return False
-
-    # Check faculty's processed courses (using cached data)
-    faculty_member = faculty_df[faculty_df['Faculty_ID'] == faculty_id].iloc[0]
-    course_id = courses_df[courses_df['Course_Name'] == course_name.rsplit('-', 1)[0]]['Course_ID'].iloc[0]
-    if course_id not in faculty_member['Processed_Courses']:
-        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Course not in faculty's processed courses"})
-        return False
-
-    # Check faculty course limits using cached counts
-    current_course_count = count_faculty_assignments(timetable, faculty_id)
-    
-    # Directly check if the faculty has reached the limit of 3 courses (sections)
-    if current_course_count >= 3:
-        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Faculty already has 3 courses"})
-        return False
-
-    # Create time keys for checking conflicts
-    selected_time_keys = [(t['Day'], t['Start_Time']) for t in selected_times]
-    
-    # Check for conflicting times in existing timetable
-    for (_, _, _), details in timetable.items():
-        # Check if room is already booked
-        if details['Room'] == room['Room_ID']:
-            # Check time overlap for room
-            for t in details['Times']:
-                if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Room Conflict at {t['Start_Time']}"})
-                    return False
-        
-        # Check if faculty is already booked
-        if details['FacultyID'] == faculty_id:
-            # Check time overlap for faculty
-            for t in details['Times']:
-                if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Faculty Conflict at {t['Start_Time']}"})
-                    return False
-        
-        # Check if section is already booked
-        if details['Section'] == section:
-            # Check time overlap for section
-            for t in details['Times']:
-                if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Section Conflict at {t['Start_Time']}"})
-                    return False
-
-    return True
-
 # Define fixed standardized time slots instead of generating them dynamically
 timeslots = []
 
@@ -321,50 +191,16 @@ for day in days:
             })
 
 # Add this function to get faculty ratings for a course
-def get_faculty_ratings_for_course(course_id):
-    faculty_ratings = []
-    for f in faculty:
-        # Only include faculty who have this course in their original Courses_Assigned
-        if course_id in f['Courses_Assigned']:
-            faculty_ratings.append((f, f['Courses_Assigned'][course_id]))
-    # Sort by rating in descending order
-    return sorted(faculty_ratings, key=lambda x: x[1], reverse=True)
-
-# Cache for faculty assignments and ratings
-faculty_course_cache = {}
-def get_cached_faculty_ratings(course_id, relaxed=False):
-    cache_key = (course_id, relaxed)
-    if cache_key not in faculty_course_cache:
-        if not relaxed:
-            faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
-                             for f in faculty 
-                             if course_id in f['Courses_Assigned']]
-            faculty_ratings.sort(key=lambda x: x[1], reverse=True)
-        else:
-            faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
-                             for f in faculty]
-        faculty_course_cache[cache_key] = faculty_ratings
-    return faculty_course_cache[cache_key]
-
-# Pre-compute available timeslots for each day
-day_timeslots_cache = {}
-for day in schedule:
-    day_timeslots_cache[day["Day"]] = [t for t in timeslots if t['Day'] == day["Day"]]
-
-# Pre-compute room capacity constraints
-room_capacity_cache = {}
-for room in rooms:
-    room_capacity_cache[room['Room_ID']] = room['Room_Capacity']
-
-# Pre-compute course requirements
-course_requirements_cache = {}
-for course in courses:
-    course_requirements_cache[course['Course_ID']] = {
-        'capacity': course['Capacity'],
-        'duration': course['Duration'],
-        'weekdays': course['Weekdays'],
-        'type': course['Course_Type']
-    }
+def get_faculty_ratings_for_course(course_id, relaxed=False):
+    if not relaxed:
+        faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
+                         for f in faculty 
+                         if course_id in f['Courses_Assigned']]
+        faculty_ratings.sort(key=lambda x: x[1], reverse=True)
+    else:
+        faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
+                         for f in faculty]
+    return faculty_ratings
 
 # Pre-compute time slot combinations
 time_slot_combinations = {}
@@ -408,14 +244,6 @@ for day in schedule:
             if room["Room_Capacity"] >= min(course["Capacity"] for course in courses):
                 time_slot_cache[day_name][room["Room_Type"]].append((timeslot, room))
 
-# Pre-compute faculty availability
-faculty_availability_cache = {}
-for f in faculty:
-    faculty_availability_cache[f['Faculty_ID']] = {
-        'courses': set(f['Processed_Courses']),
-        'max_courses': 3
-    }
-
 # Pre-compute room assignments by type and capacity
 room_assignments = {
     'Lab': [],
@@ -428,56 +256,101 @@ for room in rooms:
 for room_type in room_assignments:
     room_assignments[room_type].sort(key=lambda x: x['Room_Capacity'])
 
+# Utility function to count faculty assignments (no cache)
+def count_faculty_assignments(timetable, faculty_id):
+    unique_courses = set()
+    for (course_name, section, _), details in timetable.items():
+        if details['FacultyID'] == faculty_id:
+            unique_courses.add((course_name, section))
+    return len(unique_courses)
+
+# Restore is_consistent function (no cache, original logic)
+def is_consistent(timetable, selected_times, room, faculty_id, section, course_type, conflicts, course_name, day):
+    # Check room type constraints first (fastest check)
+    if course_type == "Lab" and room["Room_Type"] != "Lab":
+        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lab Course Assigned to Non-Lab Room"})
+        return False
+    if course_type != "Lab" and room["Room_Type"] != "Lecture":
+        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lecture Course Assigned to Lab Room"})
+        return False
+
+    # Check faculty's processed courses (using direct lookup)
+    faculty_member = faculty_df[faculty_df['Faculty_ID'] == faculty_id].iloc[0]
+    course_id = courses_df[courses_df['Course_Name'] == course_name.rsplit('-', 1)[0]]['Course_ID'].iloc[0]
+    if course_id not in faculty_member['Processed_Courses']:
+        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Course not in faculty's processed courses"})
+        return False
+
+    # Check faculty course limits using direct count
+    current_course_count = count_faculty_assignments(timetable, faculty_id)
+    if current_course_count >= 3:
+        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Faculty already has 3 courses"})
+        return False
+
+    # Create time keys for checking conflicts
+    selected_time_keys = [(t['Day'], t['Start_Time']) for t in selected_times]
+
+    # Check for conflicting times in existing timetable
+    for (_, _, _), details in timetable.items():
+        if details['Room'] == room['Room_ID']:
+            for t in details['Times']:
+                if (t['Day'], t['Start_Time']) in selected_time_keys:
+                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Room Conflict at {t['Start_Time']}"})
+                    return False
+        if details['FacultyID'] == faculty_id:
+            for t in details['Times']:
+                if (t['Day'], t['Start_Time']) in selected_time_keys:
+                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Faculty Conflict at {t['Start_Time']}"})
+                    return False
+        if details['Section'] == section:
+            for t in details['Times']:
+                if (t['Day'], t['Start_Time']) in selected_time_keys:
+                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Section Conflict at {t['Start_Time']}"})
+                    return False
+    return True
+
 def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
     if pbar:
         pbar.update(1)
         pbar.set_description(f"Processing course {course_index + 1}/{len(courses)}")
-    
     if course_index == len(courses):
         return True
-
     course = courses[course_index]
     course_id = course['Course_ID']
     section = course["Section"]
-    
-    # Get requirements from cache
-    requirements = course_requirements_cache[course_id]
-    
+    # Get requirements directly from course
+    def get_course_requirements(course):
+        return {
+            'capacity': course['Capacity'],
+            'duration': course['Duration'],
+            'weekdays': course['Weekdays'],
+            'type': course['Course_Type']
+        }
+    requirements = get_course_requirements(course)
     # Determine the appropriate time slot duration type based on course duration
     duration_type = None
     if 'Duration_Minutes' in courses_df.columns:
-        # Find the corresponding row in courses_df
         course_df_row = courses_df[courses_df['Course_ID'] == course_id].iloc[0]
         duration_minutes = course_df_row['Duration_Minutes']
-        
-        # Map duration minutes to standard slot types
-        if duration_minutes <= 60:  # 1 hour or less
+        if duration_minutes <= 60:
             duration_type = "1h"
-        elif duration_minutes <= 75:  # 1 hour 15 minutes
+        elif duration_minutes <= 75:
             duration_type = "1h15m"
-        elif duration_minutes <= 90:  # 1 hour 30 minutes
+        elif duration_minutes <= 90:
             duration_type = "1h30m"
-        else:  # 2 hours 30 minutes or more
+        else:
             duration_type = "2h30m"
     else:
-        # Fallback based on Duration in hours
         if int(requirements['duration']) <= 1:
             duration_type = "1h"
         elif int(requirements['duration']) <= 1.5:
             duration_type = "1h30m"
         else:
             duration_type = "2h30m"
-    
-    # Print debug info about the course duration
     print(f"\nCourse {course_id}-{section} using {duration_type} time blocks")
-    
-    # Get faculty ratings with caching
-    faculty_ratings = get_cached_faculty_ratings(course_id, relaxed)
-    
+    faculty_ratings = get_faculty_ratings_for_course(course_id, relaxed)
     if not faculty_ratings and not relaxed:
         return backtrack(timetable, course_index, conflicts, relaxed=True, pbar=pbar)
-    
-    # Filter faculty based on course limit and processed courses
     available_faculty = []
     if not relaxed:
         available_faculty = [
@@ -490,58 +363,37 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
             f for f in faculty 
             if count_faculty_assignments(timetable, f['Faculty_ID']) < 3
         ]
-    
-    # Sort faculty by their ratings for this course
     available_faculty.sort(key=lambda f: f['Courses_Assigned'].get(course_id, 0), reverse=True)
-    
-    # Try each faculty member in order of their ratings
     for faculty_member in available_faculty:
-        # Skip if timeout reached
         if time.time() - start_time > MAX_TIME_PER_COURSE * (course_index + 1):
             print(f"\nSkipping complex course {course_id}-{section} and moving on.")
             conflicts.append({"CourseName": course['Course_Name'], "Section": section, 
                             "Conflict": "Scheduling timeout - too complex"})
             return backtrack(timetable, course_index + 1, conflicts, relaxed, pbar)
-            
         assignments = []
         assigned_days = 0
         last_assigned_day = None
-        
-        # Try to schedule all required days with this faculty member
         for day in schedule:
             day_name = day["Day"]
-            
             if assigned_days >= requirements['weekdays']:
                 break
-                
-            if last_assigned_day and schedule.index(day) - schedule.index(last_assigned_day) < 2:
+            if last_assigned_day and schedule.index(day) - schedule.index(last_assigned_day) < 3:
                 continue
-            
-            # Filter time slots for this day and duration type
             available_timeslots = [
                 ts for ts in timeslots 
                 if ts['Day'] == day_name and ts['Duration_Type'] == duration_type
             ]
-            
             if not available_timeslots:
                 print(f"No available {duration_type} slots for day {day_name}")
                 continue
-            
-            # Get room type needed
             room_type = "Lab" if requirements['type'] == "Lab" else "Lecture"
-            
-            # Find suitable rooms
             suitable_rooms = [
                 r for r in rooms 
                 if r['Room_Capacity'] >= requirements['capacity'] and r['Room_Type'] == room_type
             ]
-            
             if not suitable_rooms:
                 continue
-            
-            # Try each time slot
             for slot in available_timeslots:
-                # Try each room
                 for room in suitable_rooms:
                     if is_consistent(
                         timetable, [slot], room, faculty_member['Faculty_ID'], section,
@@ -562,39 +414,19 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
                         assigned_days += 1
                         last_assigned_day = day
                         break
-                
-                # If this day is assigned, move to next day
                 if last_assigned_day == day:
                     break
-            
-            # If we successfully scheduled all required days with this faculty member
             if assigned_days == requirements['weekdays']:
-                # Apply all assignments at once
                 for key, value in assignments:
                     timetable[key] = value
-                
-                # Update caches only when we make actual changes
-                clear_faculty_caches()
-                room_timeslot_cache.clear()
-                update_room_timeslot_cache(timetable)
-                update_time_conflict_caches(timetable)
-                
+                # No cache update needed
                 if backtrack(timetable, course_index + 1, conflicts, relaxed, pbar):
                     return True
-                
-                # If backtracking failed, remove assignments
                 for key, _ in assignments:
                     del timetable[key]
-                
-                # Update caches after removal
-                clear_faculty_caches()
-                room_timeslot_cache.clear()
-                update_room_timeslot_cache(timetable)
-                update_time_conflict_caches(timetable)
-    
+                # No cache update needed
     if not relaxed:
         return backtrack(timetable, course_index, conflicts, relaxed=True, pbar=pbar)
-    
     return False
 
 # Measure Execution Time
