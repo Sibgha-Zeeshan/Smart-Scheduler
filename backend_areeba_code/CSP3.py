@@ -432,8 +432,16 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
                     del timetable[key]
                 # No cache update needed
     if not relaxed:
+        # Try relaxed mode first
         return backtrack(timetable, course_index, conflicts, relaxed=True, pbar=pbar)
-    return False
+    else:
+        # If still not assigned, record as unassigned and skip to next
+        conflicts.append({
+            "CourseName": course['Course_Name'],
+            "Section": section,
+            "Reason": "Could not assign after all options (deadlock or over-constrained)"
+        })
+        return backtrack(timetable, course_index + 1, conflicts, False, pbar)
 
 # Measure Execution Time
 print("\nStarting timetable generation...")
@@ -578,13 +586,15 @@ with tqdm(total=len(courses), desc="Generating timetable", unit="course") as pba
 
             print(f"Timetable saved to {timetable_output_path}")
 
+            # Add unassigned courses sheet if there are any conflicts
             if conflicts:
-                print("Saving conflicts to CSV...")
+                print("Saving unassigned courses to Excel (sheet)...")
                 conflicts_df = pd.DataFrame(conflicts)
-                conflicts_output_path = os.path.join(output_folder, "conflicts.csv")
-                conflicts_df.to_csv(conflicts_output_path, index=False)
-                print(f"Conflicts saved to {conflicts_output_path}")
+                # Re-open the file in append mode using openpyxl
+                with pd.ExcelWriter(timetable_output_path, engine="openpyxl", mode="a") as writer:
+                    conflicts_df.to_excel(writer, sheet_name="Unassigned Courses", index=False)
+                print(f"Unassigned courses saved to {timetable_output_path} (sheet: 'Unassigned Courses')")
+
     except Exception as e:
         print(f"Error during timetable generation: {e}")
-
 
