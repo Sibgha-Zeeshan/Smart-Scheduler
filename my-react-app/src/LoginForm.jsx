@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-function LoginForm({ onLogin, onClose, loading, error, defaultEmail = "", adminLogin = false }) {
+function LoginForm({ onLogin, onClose, loading, error, defaultEmail = "", adminLogin = false, zoomed = false }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -31,7 +31,8 @@ function LoginForm({ onLogin, onClose, loading, error, defaultEmail = "", adminL
       border: '1px solid rgba(255, 255, 255, 0.1)',
       position: 'relative',
       overflow: 'hidden',
-      zIndex: 1001
+      zIndex: 1001,
+      ...(zoomed ? { zoom: 0.67 } : {})
     }}>
       {/* Decorative gradient overlay */}
       <div style={{

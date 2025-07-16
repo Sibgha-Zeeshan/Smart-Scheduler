@@ -36,7 +36,8 @@ function SignupForm({ onClose, onSignup }) {
       border: '1px solid rgba(255, 255, 255, 0.1)',
       position: 'relative',
       overflow: 'hidden',
-      zIndex: 1001
+      zIndex: 1001,
+      zoom: 0.67
     }}>
       {/* Decorative gradient overlay */}
       <div style={{

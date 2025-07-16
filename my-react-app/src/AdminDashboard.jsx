@@ -12,7 +12,7 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
     <div style={{
       minHeight: '100vh',
       width: '100vw',
-      background: '#18181b',
+      background: 'linear-gradient(135deg, #18181b 0%, #23272f 50%, #38bdf8 100%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -20,30 +20,45 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
       padding: '0',
       position: 'relative',
       overflow: 'hidden',
+      fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',
     }}>
+      {/* Soft blurred colored blob background */}
+      <div style={{
+        position: 'absolute',
+        top: '-80px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '520px',
+        height: '320px',
+        background: 'radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 70%)',
+        filter: 'blur(48px)',
+        zIndex: 0,
+        opacity: 0.7,
+        pointerEvents: 'none',
+      }} />
       {/* Navbar */}
       <nav className="admin-navbar-glass" style={{
-        width: 'calc(100% - 4rem)',
-        margin: '0 2rem', // Add left and right margin
+        width: 'calc(100% - 2rem)',
+        margin: '0 1rem',
         background: 'rgba(30,41,59,0.82)',
         backdropFilter: 'blur(18px)',
         borderBottom: '1.5px solid #23272f',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '2.2rem 3rem', // 3rem left and right padding
+        padding: '0.7rem 1.2rem',
         position: 'sticky',
         top: 0,
         zIndex: 10,
         boxShadow: '0 4px 32px 0 rgba(34,211,238,0.08)',
-        minHeight: 68,
+        minHeight: 40,
       }}>
-        <div className="admin-navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', fontWeight: 800, fontSize: '1.85rem', color: '#22d3ee', letterSpacing: '-1px', cursor: 'pointer', transition: 'transform 0.2s' }}>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 14, transition: 'transform 0.2s' }} className="admin-navbar-logoicon"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/></svg>
+        <div className="admin-navbar-logo responsive-admin-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', fontWeight: 800, fontSize: '0.93rem', color: '#22d3ee', letterSpacing: '-1px', cursor: 'pointer', transition: 'transform 0.2s' }}>
+          <svg className="admin-navbar-logoicon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 14, transition: 'transform 0.2s' }}><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/></svg>
           Smart Scheduler <span style={{ color: '#38bdf8', fontWeight: 700, marginLeft: 12 }}>Admin</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3.2rem' }}>
-          <div className="admin-navbar-links" style={{ display: 'flex', alignItems: 'center', gap: '2.8rem', fontWeight: 600, fontSize: '1.35rem', marginRight: '2.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+          <div className="admin-navbar-links" style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', fontWeight: 600, fontSize: '1rem', marginRight: '1.2rem' }}>
             <a href="#dashboard" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(false); }}>Dashboard</a>
             <a href="#history" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(true); }}>History</a>
           </div>
@@ -51,14 +66,14 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
             background: 'linear-gradient(90deg, #22d3ee 0%, #06b6d4 100%)',
             color: '#fff',
             border: 'none',
-            borderRadius: '9px',
-            padding: '1.3rem 3.2rem',
+            borderRadius: '7px',
+            padding: '0.5rem 1.2rem',
             fontWeight: 700,
-            fontSize: '1.35rem',
+            fontSize: '1rem',
             cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(34,211,238,0.13)',
+            boxShadow: '0 2px 8px rgba(34,211,238,0.13)',
             transition: 'background 0.2s, transform 0.2s, box-shadow 0.2s',
-            letterSpacing: '0.5px',
+            letterSpacing: '0.3px',
           }}>Logout</button>
         </div>
         <style>{`
@@ -126,20 +141,22 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
           {/* Topbar */}
           <header style={{
             width: '100%',
-            padding: '2.5rem 0 1.5rem 0',
+            padding: '1.2rem 0 1.1rem 0',
             textAlign: 'center',
-            background: '#23272f',
+            background: 'rgba(35,39,47,0.92)',
             color: '#fff',
-            boxShadow: '0 2px 12px rgba(30,41,59,0.10)',
-            marginBottom: '2.5rem',
+            boxShadow: '0 2px 24px rgba(56,189,248,0.10)',
+            marginBottom: '1.2rem',
             position: 'relative',
             zIndex: 1,
-            animation: 'slideDown 0.8s ease-out',
+            borderRadius: '0 0 1.2rem 1.2rem',
+            animation: 'fadeInUpAdmin 1.1s cubic-bezier(.39,.575,.56,1.000) 0.1s both',
           }}>
             {/* Back Icon */}
             {onBack && (
               <button
                 onClick={onBack}
+                className="admin-back-btn responsive-back-btn"
                 style={{
                   position: 'absolute',
                   top: 24,
@@ -158,17 +175,31 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
                   zIndex: 2,
                   outline: 'none',
                   animation: 'fadeInUp 1s ease-out 0.2s both',
+                  padding: 0,
                 }}
-                className="admin-back-btn"
                 aria-label="Back"
               >
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transition: 'stroke 0.2s' }}>
+                <svg className="responsive-back-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', transition: 'stroke 0.2s' }}>
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
             )}
-            <h1 style={{ fontSize: '2.3rem', fontWeight: 800, margin: 0, letterSpacing: '-1px', textShadow: '0 2px 12px #23272f55', animation: 'glow 2s ease-in-out infinite alternate' }}>Admin Dashboard</h1>
-            <p style={{ fontSize: '1.1rem', color: '#cbd5e1', marginTop: '0.7rem', fontWeight: 500, letterSpacing: '0.5px', animation: 'fadeInUp 1s ease-out 0.3s both' }}>
+            <h1 style={{
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              margin: 0,
+              letterSpacing: '-1px',
+              textShadow: '0 2px 10px #38bdf855, 0 0 16px #38bdf899',
+              animation: 'fadeInUpAdminTitle 1.2s cubic-bezier(.39,.575,.56,1.000) 0.2s both, glow 2s ease-in-out infinite alternate',
+              background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textFillColor: 'transparent',
+            }}>
+              Admin Dashboard
+            </h1>
+            <p style={{ fontSize: '0.92rem', color: '#cbd5e1', marginTop: '0.4rem', fontWeight: 500, letterSpacing: '0.3px', animation: 'fadeInUp 1s ease-out 0.3s both' }}>
               Welcome, <span style={{ color: '#fff', fontWeight: 700 }}>UMT Admin</span>! Manage user signups and approve or reject new accounts below.
             </p>
             {/* Stats Bar */}
@@ -176,14 +207,15 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: '3.5rem',
-              margin: '2.5rem auto 0 auto',
-              padding: '1.5rem 2.5rem',
-              background: '#18181b',
-              borderRadius: '16px',
-              boxShadow: '0 2px 12px rgba(30,41,59,0.10)',
-              maxWidth: 800,
-              animation: 'fadeInUp 1s ease-out 0.5s both',
+              gap: '1.1rem',
+              margin: '1.1rem auto 0 auto',
+              padding: '1.1rem 3.5rem', // increased padding
+              background: 'rgba(24,24,27,0.97)',
+              borderRadius: '1rem',
+              boxShadow: '0 2px 8px rgba(56,189,248,0.10)',
+              maxWidth: 900, // increased maxWidth
+              width: '100%', // ensure it stretches
+              animation: 'fadeInUpAdminStats 1.1s cubic-bezier(.39,.575,.56,1.000) 0.5s both',
             }}>
               {stats.map((stat, i) => (
                 <div key={stat.label} style={{
@@ -191,26 +223,26 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minWidth: 120,
-                  padding: '0.7rem 1.5rem',
-                  borderRadius: '12px',
+                  minWidth: 70,
+                  padding: '0.3rem 0.7rem',
+                  borderRadius: '7px',
                   background: '#23272f',
-                  boxShadow: '0 2px 8px rgba(30,41,59,0.07)',
-                  border: `2px solid ${stat.color}`,
+                  boxShadow: '0 2px 4px rgba(30,41,59,0.07)',
+                  border: `1.2px solid ${stat.color}`,
                   animation: `bounceIn 0.8s ease-out ${0.2 + i * 0.1}s both`,
                 }}>
-                  <span style={{ fontSize: '1.7rem', marginBottom: '0.2rem', color: stat.color }}>{stat.icon}</span>
-                  <span style={{ fontWeight: 700, fontSize: '1.15rem', color: stat.color }}>{stat.value}</span>
-                  <span style={{ color: '#cbd5e1', fontSize: '0.97rem', marginTop: '0.1rem', fontWeight: 500 }}>{stat.label}</span>
+                  <span style={{ fontSize: '1.1rem', marginBottom: '0.1rem', color: stat.color }}>{stat.icon}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.89rem', color: stat.color }}>{stat.value}</span>
+                  <span style={{ color: '#cbd5e1', fontSize: '0.81rem', marginTop: '0.05rem', fontWeight: 500 }}>{stat.label}</span>
                 </div>
               ))}
             </div>
           </header>
           <main style={{
             width: '100%',
-            maxWidth: 1000,
+            maxWidth: 1300, // increased from 1000
             margin: '0 auto',
-            padding: '2.5rem',
+            padding: '4rem 3rem', // increased padding
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -221,67 +253,59 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
                 Pending Signup Requests
               </h2>
               {pendingSignups.length === 0 ? (
-                <div style={{ color: '#38bdf8', fontSize: '1.1rem', textAlign: 'center', marginTop: '2.5rem', background: '#23272f', borderRadius: '10px', padding: '1.5rem 0', animation: 'fadeInUp 1s ease-out 0.5s both', boxShadow: '0 2px 8px rgba(30,41,59,0.07)' }}>
+                <div style={{ color: '#38bdf8', fontSize: '0.92rem', textAlign: 'center', marginTop: '2.5rem', background: '#23272f', borderRadius: '10px', padding: '1.5rem 0', animation: 'fadeInUp 1s ease-out 0.5s both', boxShadow: '0 2px 8px rgba(30,41,59,0.07)' }}>
                   No pending signups. All caught up!
                 </div>
               ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                  gap: '2.5rem',
-                  width: '100%',
-                  marginTop: '1rem',
-                }}>
-                  {pendingSignups.map((user, idx) => (
-                    <div key={user.email} style={{
-                      background: '#23272f',
-                      borderRadius: '14px',
-                      boxShadow: '0 4px 16px rgba(30,41,59,0.13)',
-                      padding: '2rem 1.5rem',
-                      color: '#f1f5f9',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      justifyContent: 'center',
-                      minHeight: '140px',
-                      border: '1.5px solid #23272f',
-                      position: 'relative',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                      animation: `slideInUp 0.7s cubic-bezier(.23,1.01,.32,1) both ${0.1 + idx * 0.1}s`,
-                    }}>
-                      <div style={{ fontSize: '1.13rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.3rem', animation: 'fadeInUp 1s ease-out 0.2s both' }}>{user.username}</div>
-                      <div style={{ fontSize: '1.01rem', color: '#cbd5e1', marginBottom: '0.3rem', animation: 'fadeInUp 1s ease-out 0.3s both' }}>{user.email}</div>
-                      <div style={{ fontSize: '0.97rem', color: '#fbbf24', fontWeight: 600, marginBottom: '1rem', textTransform: 'capitalize', animation: 'fadeInUp 1s ease-out 0.4s both' }}>{user.role}</div>
-                      <div style={{ display: 'flex', gap: '0.7rem', marginTop: 'auto' }}>
-                        <button onClick={() => onApprove(user)} style={{
-                          background: 'linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '7px',
-                          padding: '0.6rem 1.3rem',
-                          fontWeight: 700,
-                          fontSize: '1.01rem',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px rgba(56,189,248,0.13)',
-                          transition: 'background 0.2s, transform 0.2s',
-                          animation: 'bounceIn 0.8s ease-out 0.1s both',
-                        }}>Approve</button>
-                        <button onClick={() => onReject(user)} style={{
-                          background: 'linear-gradient(90deg, #f43f5e 0%, #23272f 100%)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '7px',
-                          padding: '0.6rem 1.3rem',
-                          fontWeight: 700,
-                          fontSize: '1.01rem',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 8px rgba(244,63,94,0.13)',
-                          transition: 'background 0.2s, transform 0.2s',
-                          animation: 'bounceIn 0.8s ease-out 0.2s both',
-                        }}>Reject</button>
-                      </div>
-                    </div>
-                  ))}
+                <div style={{ width: '100%', overflowX: 'auto', marginTop: '1rem', animation: 'fadeInUp 1s' }}>
+                  <table style={{ width: '100%', minWidth: 500, borderCollapse: 'collapse', background: 'rgba(35,39,47,0.92)', borderRadius: '16px', color: '#f1f5f9', fontSize: '1.05rem', boxShadow: '0 2px 8px rgba(56,189,248,0.10)' }}>
+                    <thead>
+                      <tr style={{ background: 'rgba(56,189,248,0.10)' }}>
+                        <th style={{ padding: '1rem 1.5rem', color: '#38bdf8', fontWeight: 800, textAlign: 'left', borderBottom: '2px solid #23272f', fontSize: '1.08rem', letterSpacing: '-0.5px' }}>Name</th>
+                        <th style={{ padding: '1rem 1.5rem', color: '#38bdf8', fontWeight: 800, textAlign: 'left', borderBottom: '2px solid #23272f', fontSize: '1.08rem', letterSpacing: '-0.5px' }}>Email</th>
+                        <th style={{ padding: '1rem 1.5rem', color: '#38bdf8', fontWeight: 800, textAlign: 'left', borderBottom: '2px solid #23272f', fontSize: '1.08rem', letterSpacing: '-0.5px' }}>Role</th>
+                        <th style={{ padding: '1rem 1.5rem', color: '#38bdf8', fontWeight: 800, textAlign: 'center', borderBottom: '2px solid #23272f', fontSize: '1.08rem', letterSpacing: '-0.5px' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingSignups.map((user, idx) => (
+                        <tr key={user.email} style={{ borderBottom: '1px solid #23272f', animation: `fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) both ${0.1 + idx * 0.1}s` }}>
+                          <td style={{ padding: '1rem 1.5rem', fontWeight: 700, color: '#38bdf8' }}>{user.username}</td>
+                          <td style={{ padding: '1rem 1.5rem', color: '#cbd5e1' }}>{user.email}</td>
+                          <td style={{ padding: '1rem 1.5rem', color: '#fbbf24', fontWeight: 600, textTransform: 'capitalize' }}>{user.role}</td>
+                          <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                            <button onClick={() => onApprove(user)} style={{
+                              background: 'linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '0.35rem 0.8rem',
+                              fontWeight: 700,
+                              fontSize: '0.98rem',
+                              cursor: 'pointer',
+                              boxShadow: '0 1px 4px rgba(56,189,248,0.10)',
+                              marginRight: '0.5rem',
+                              transition: 'background 0.2s, transform 0.2s',
+                              animation: 'bounceIn 0.8s ease-out 0.1s both',
+                            }}>Approve</button>
+                            <button onClick={() => onReject(user)} style={{
+                              background: 'linear-gradient(90deg, #f43f5e 0%, #23272f 100%)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '0.35rem 0.8rem',
+                              fontWeight: 700,
+                              fontSize: '0.98rem',
+                              cursor: 'pointer',
+                              boxShadow: '0 1px 4px rgba(244,63,94,0.10)',
+                              transition: 'background 0.2s, transform 0.2s',
+                              animation: 'bounceIn 0.8s ease-out 0.2s both',
+                            }}>Reject</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </section>
@@ -335,6 +359,126 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
         button:hover {
           transform: translateY(-2px) scale(1.05);
           box-shadow: 0 8px 25px rgba(56,189,248,0.13);
+        }
+        @keyframes fadeInUpAdmin {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUpAdminTitle {
+          from { opacity: 0; transform: translateY(60px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInUpAdminStats {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 1100px) {
+          .admin-dashboard-glass {
+            max-width: 98vw !important;
+            padding: 1.2rem 0.5rem !important;
+          }
+          main {
+            padding: 2rem 0.5rem !important;
+          }
+        }
+        @media (max-width: 900px) {
+          .admin-dashboard-glass {
+            max-width: 100vw !important;
+            padding: 0.7rem 0.2rem !important;
+            border-radius: 1.2rem !important;
+          }
+          nav, header, main, section {
+            padding-left: 0.2rem !important;
+            padding-right: 0.2rem !important;
+          }
+          .admin-navbar-logo {
+            font-size: 1rem !important;
+          }
+          h1 {
+            font-size: 1.1rem !important;
+          }
+          .stats-bar {
+            flex-direction: column !important;
+            gap: 0.7rem !important;
+            padding: 0.7rem 0.2rem !important;
+          }
+          .responsive-admin-logo {
+            font-size: 0.95rem !important;
+            gap: 0.4rem !important;
+          }
+          .responsive-admin-logo .admin-navbar-logoicon {
+            width: 22px !important;
+            height: 22px !important;
+            margin-right: 7px !important;
+          }
+          .responsive-back-btn {
+            width: 32px !important;
+            height: 32px !important;
+            left: 10px !important;
+            top: 12px !important;
+          }
+          .responsive-back-icon {
+            width: 16px !important;
+            height: 16px !important;
+          }
+        }
+        @media (max-width: 700px) {
+          .admin-dashboard-glass {
+            padding: 0.5rem 0.05rem !important;
+            border-radius: 0.7rem !important;
+          }
+          nav, header, main, section {
+            padding-left: 0.05rem !important;
+            padding-right: 0.05rem !important;
+          }
+          .admin-navbar-logo {
+            font-size: 0.85rem !important;
+          }
+          h1 {
+            font-size: 0.9rem !important;
+          }
+          .stats-bar {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.05rem !important;
+          }
+          .responsive-admin-logo {
+            font-size: 0.8rem !important;
+            gap: 0.2rem !important;
+          }
+          .responsive-admin-logo .admin-navbar-logoicon {
+            width: 16px !important;
+            height: 16px !important;
+            margin-right: 4px !important;
+          }
+          .responsive-back-btn {
+            width: 24px !important;
+            height: 24px !important;
+            left: 4px !important;
+            top: 6px !important;
+          }
+          .responsive-back-icon {
+            width: 12px !important;
+            height: 12px !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .admin-dashboard-glass {
+            padding: 0.2rem 0.01rem !important;
+            border-radius: 0.4rem !important;
+          }
+          h1 {
+            font-size: 0.8rem !important;
+          }
+          .responsive-admin-logo {
+            font-size: 0.65rem !important;
+            gap: 0.1rem !important;
+          }
+          .responsive-admin-logo .admin-navbar-logoicon {
+            width: 12px !important;
+            height: 12px !important;
+            margin-right: 2px !important;
+          }
         }
       `}</style>
     </div>

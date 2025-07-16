@@ -59,7 +59,8 @@ function TeacherDashboard({ onBack, teacherUser }) {
     <div style={{
       minHeight: '100vh',
       width: '100vw',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      background: 'linear-gradient(120deg, #0f172a 0%, #1e293b 100%)',
+      fontFamily: 'Inter, Roboto, system-ui, sans-serif',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -68,41 +69,34 @@ function TeacherDashboard({ onBack, teacherUser }) {
       overflow: 'hidden',
     }}>
       {/* Decorative Blobs */}
-      <div style={{
-        position: 'absolute',
-        top: '8%',
-        left: '8%',
-        width: '220px',
-        height: '220px',
-        background: 'radial-gradient(circle, rgba(34,211,238,0.13) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(60px)',
-        opacity: 0.13,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '10%',
-        right: '10%',
-        width: '280px',
-        height: '280px',
-        background: 'radial-gradient(circle, rgba(59,130,246,0.13) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(60px)',
-        opacity: 0.13,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
+      {/* Animated SVG Blob */}
+      <svg style={{position:'absolute',top:'-80px',left:'-120px',zIndex:0,opacity:0.22,filter:'blur(2px)',animation:'blobMove 18s ease-in-out infinite'}} width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="blobGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#38bdf8"/>
+            <stop offset="100%" stopColor="#0ea5e9"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#blobGrad)" d="M320,60Q380,120,340,200Q300,280,200,320Q100,360,60,260Q20,160,100,100Q180,40,320,60Z"/>
+      </svg>
+      <svg style={{position:'absolute',bottom:'-100px',right:'-120px',zIndex:0,opacity:0.18,filter:'blur(2px)',animation:'blobMove2 22s ease-in-out infinite'}} width="420" height="420" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="blobGrad2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#6366f1"/>
+            <stop offset="100%" stopColor="#38bdf8"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#blobGrad2)" d="M320,60Q380,120,340,200Q300,280,200,320Q100,360,60,260Q20,160,100,100Q180,40,320,60Z"/>
+      </svg>
       {/* Topbar */}
       <header style={{
         width: '100%',
-        padding: '2.2rem 0 1.2rem 0',
+        padding: '1.2rem 0 0.7rem 0', // reduced
         textAlign: 'center',
         background: '#23272f',
         color: '#fff',
         boxShadow: '0 2px 12px rgba(30,41,59,0.10)',
-        marginBottom: '2.5rem',
+        marginBottom: '1.2rem', // reduced
         position: 'relative',
         zIndex: 1,
         animation: 'slideDown 0.8s ease-out',
@@ -131,124 +125,154 @@ function TeacherDashboard({ onBack, teacherUser }) {
             }}
             aria-label="Back"
           >
-            <ArrowLeft size={26} color="#22d3ee" />
-        </button>
+            <ArrowLeft size={100} color="#22d3ee" style={{ display: 'block' }} />
+          </button>
         )}
-        <h1 style={{ fontSize: '2.1rem', fontWeight: 800, margin: 0, letterSpacing: '-1px', textShadow: '0 2px 12px #23272f55', animation: 'glow 2s ease-in-out infinite alternate' }}>Teacher Dashboard</h1>
-        <p style={{ fontSize: '1.08rem', color: '#cbd5e1', marginTop: '0.7rem', fontWeight: 500, letterSpacing: '0.5px', animation: 'fadeInUp 1s ease-out 0.3s both' }}>
-          Welcome, <span style={{ color: '#22d3ee', fontWeight: 700 }}>Professor</span>! Manage your classes, schedule, and resources below.
-        </p>
+        <h1
+          className="teacher-dashboard-heading"
+          style={{
+            fontSize: '1.2rem',
+            fontWeight: 900,
+            margin: 0,
+            letterSpacing: '-1px',
+            background: 'linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textAlign: 'center',
+            position: 'relative',
+            animation: 'slideInLeft 1.2s',
+            lineHeight: 1.05,
+            textShadow: '0 2px 16px #38bdf855, 0 0 24px #0ea5e999',
+            filter: 'drop-shadow(0 2px 8px #38bdf855)',
+          }}
+        >
+          Teacher Dashboard
+          <span
+            style={{
+              display: 'block',
+              width: 44,
+              height: 5,
+              margin: '0.3rem auto 0 auto',
+              borderRadius: 3,
+              background: 'linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%)',
+              boxShadow: '0 0 16px #38bdf855',
+              opacity: 0.85,
+              animation: 'pulseBar 2.5s infinite',
+            }}
+          />
+        </h1>
+        <div
+          className="teacher-dashboard-subheading"
+          style={{
+            display: 'block',
+            fontSize: '0.95rem',
+            color: '#38bdf8',
+            fontWeight: 500,
+            margin: '0.3rem auto 0.2rem auto',
+            textAlign: 'center',
+            lineHeight: 1.2,
+          }}
+        >
+          Welcome, Professor! Manage your classes, schedule, and resources below.
+        </div>
       </header>
       <main style={{
         width: '100%',
         maxWidth: 900,
         margin: '0 auto',
-        padding: '2.5rem 1.5rem',
+        padding: '1.2rem 0.7rem', // reduced
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         zIndex: 1,
-        gap: '2.5rem',
+        gap: '1.2rem', // reduced
       }}>
         {/* Profile Card */}
         {/* Removed profile card as per user request */}
       {/* Welcome Message */}
         <section style={{ width: '100%', maxWidth: 700, marginBottom: '1.5rem' }}>
-          <div style={{
-            background: 'rgba(34,211,238,0.07)',
-            borderRadius: '14px',
-            padding: '1.5rem 2rem',
-            color: '#22d3ee',
-            fontWeight: 500,
-            fontSize: '1.13rem',
-            textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(30,41,59,0.07)',
-            animation: 'fadeInUp 1s',
-          }}>
-          Here you can manage your classes, view your schedule, and connect with your students. Smart Scheduler makes your teaching experience seamless and organized.
-      </div>
-        </section>
-      {/* Teacher Features Grid */}
-        <section style={{ width: '100%', maxWidth: 900 }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '2rem',
-            width: '100%',
-            margin: '0 auto',
-            animation: 'fadeInUp 1s',
-          }}>
-            <div style={{ background: 'rgba(34,211,238,0.08)', borderRadius: 14, padding: '2rem', textAlign: 'center', border: '1px solid rgba(34,211,238,0.15)', boxShadow: '0 2px 12px rgba(34,211,238,0.05)', color: '#f1f5f9', transition: 'transform 0.2s, box-shadow 0.2s' }}>
-          <Users size={36} color="#22d3ee" style={{ marginBottom: 10 }} />
-              <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 6 }}>Class Management</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.98rem' }}>View, add, or edit your classes and student lists.</div>
-        </div>
-            <div style={{ background: 'rgba(52,211,153,0.08)', borderRadius: 14, padding: '2rem', textAlign: 'center', border: '1px solid rgba(52,211,153,0.15)', boxShadow: '0 2px 12px rgba(52,211,153,0.05)', color: '#f1f5f9', transition: 'transform 0.2s, box-shadow 0.2s' }}>
-          <Calendar size={36} color="#34d399" style={{ marginBottom: 10 }} />
-              <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 6 }}>Schedule Overview</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.98rem' }}>See your upcoming classes and important dates.</div>
-        </div>
-            <div style={{ background: 'rgba(59,130,246,0.08)', borderRadius: 14, padding: '2rem', textAlign: 'center', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 12px rgba(59,130,246,0.05)', color: '#f1f5f9', transition: 'transform 0.2s, box-shadow 0.2s' }}>
-          <BookOpen size={36} color="#3b82f6" style={{ marginBottom: 10 }} />
-              <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 6 }}>Resources</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.98rem' }}>Upload and share course materials with your students.</div>
-        </div>
-      </div>
+          {/* Removed the div containing the text */}
         </section>
         {/* Timetable Section */}
-        <section style={{ width: '100%', maxWidth: 800, margin: '2.5rem auto 0 auto' }}>
+        <section style={{ width: '100%', maxWidth: 800, margin: '1.2rem auto 0 auto' }}>
           {/* Info Banner */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
+            gap: '0.3rem',
             background: 'rgba(34,211,238,0.10)',
-            borderRadius: 14,
-            padding: '1.1rem 2rem',
-            boxShadow: '0 2px 12px rgba(34,211,238,0.07)',
-            maxWidth: 600,
+            borderRadius: 12,
+            padding: '0.1rem 0.3rem',
+            boxShadow: '0 2px 8px rgba(34,211,238,0.07)',
             width: '100%',
-            margin: '0 auto 2.2rem auto',
+            margin: '0 auto 1.1rem auto',
+            fontSize: '0.68rem',
+            fontWeight: 500,
+            textAlign: 'center',
+            justifyContent: 'center',
+            animation: 'fadeInUp 1s',
           }}>
             <Info size={32} color="#22d3ee" style={{ flexShrink: 0 }} />
-            <div style={{ fontWeight: 600, fontSize: '1.18rem', color: '#22d3ee', letterSpacing: '0px' }}>
+            <div style={{ fontWeight: 600, fontSize: '0.68rem', color: '#22d3ee', letterSpacing: '0px' }}>
               Your timetable will appear below when available. Download it for easy access!
             </div>
           </div>
           <div style={{
-            background: "rgba(35,39,47,0.92)",
-            borderRadius: "22px",
-            boxShadow: "0 12px 48px rgba(34,211,238,0.18)",
-            padding: "3rem 2.5rem 2.5rem 2.5rem",
-            marginBottom: "2.5rem",
+            background: "rgba(35,39,47,0.82)",
+            borderRadius: "28px",
+            boxShadow: "0 8px 48px 0 rgba(34,211,238,0.22), 0 1.5px 12px 0 #0ea5e955",
+            padding: "1.2rem 0.7rem 1.1rem 0.7rem",
+            marginBottom: "1.2rem",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             animation: "fadeInUp 1s",
-            border: '2.5px solid rgba(34,211,238,0.18)',
-            backdropFilter: 'blur(14px)',
-            minHeight: 320,
+            border: '2.5px solid rgba(34,211,238,0.22)',
+            backdropFilter: 'blur(22px)',
+            minHeight: 180,
+            filter: 'drop-shadow(0 0 24px #38bdf855)',
           }}>
-            <h2 style={{ color: "#22d3ee", fontWeight: 800, fontSize: "2rem", marginBottom: "1.6rem", letterSpacing: "-1px", textShadow: '0 2px 12px #22d3ee55' }}>Your Timetable</h2>
+            {/* Personalized Welcome Message */}
+            <div style={{
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              color: '#38bdf8',
+              marginBottom: '0.5rem',
+              letterSpacing: '-0.5px',
+              textAlign: 'center',
+              background: 'rgba(34,211,238,0.08)',
+              borderRadius: '999px',
+              padding: '0.3em 1.2em',
+              boxShadow: '0 2px 12px #38bdf822',
+              border: '1.5px solid #38bdf822',
+              backdropFilter: 'blur(2px)',
+              display: 'inline-block',
+            }}>
+              {`Welcome, ${profile && profile.name ? profile.name : 'Professor'}!`}
+            </div>
+            <h2 style={{ color: "#22d3ee", fontWeight: 800, fontSize: "1.3rem", marginBottom: "0.7rem", letterSpacing: "-1px", textShadow: '0 2px 12px #22d3ee55' }}>Your Timetable</h2>
             {timetable.length === 0 ? (
-              <div style={{ color: '#94a3b8', fontSize: '1.25rem', padding: '3rem 0', textAlign: 'center', fontWeight: 500 }}>
+              <div style={{ color: '#94a3b8', fontSize: '1.1rem', padding: '1.2rem 0', textAlign: 'center', fontWeight: 500 }}>
                 No timetable available yet.<br />Please check back later.
               </div>
             ) : (
               <>
-                <div style={{ width: "100%", overflowX: "auto", marginBottom: "2.2rem" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", background: "rgba(34,211,238,0.03)", borderRadius: "12px", color: "#cbd5e1", fontSize: "1.18rem", boxShadow: '0 2px 8px rgba(34,211,238,0.07)' }}>
+                <div style={{ width: "100%", overflowX: "auto", marginBottom: "1.1rem" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", background: "rgba(34,211,238,0.06)", borderRadius: "14px", color: "#cbd5e1", fontSize: "1.08rem", boxShadow: '0 2px 16px rgba(34,211,238,0.13)', overflow: 'hidden' }}>
                     <thead>
-                      <tr style={{ background: "rgba(34,211,238,0.10)" }}>
-                        <th style={{ padding: "1.1rem 1.5rem", color: "#22d3ee", fontWeight: 800, textAlign: "left", borderBottom: "2px solid #23272f", fontSize: '1.18rem', letterSpacing: '-0.5px' }}>Day</th>
-                        <th style={{ padding: "1.1rem 1.5rem", color: "#22d3ee", fontWeight: 800, textAlign: "left", borderBottom: "2px solid #23272f", fontSize: '1.18rem', letterSpacing: '-0.5px' }}>Classes</th>
+                      <tr style={{ background: "rgba(34,211,238,0.13)" }}>
+                        <th style={{ padding: "0.7rem 0.9rem", color: "#22d3ee", fontWeight: 800, textAlign: "left", borderBottom: "2px solid #23272f", fontSize: '1rem', letterSpacing: '-0.5px', textShadow: '0 1px 6px #22d3ee33' }}>Day</th>
+                        <th style={{ padding: "0.7rem 0.9rem", color: "#22d3ee", fontWeight: 800, textAlign: "left", borderBottom: "2px solid #23272f", fontSize: '1rem', letterSpacing: '-0.5px', textShadow: '0 1px 6px #22d3ee33' }}>Classes</th>
                       </tr>
                     </thead>
                     <tbody>
                       {timetable.map((row, i) => (
-                        <tr key={row.day} style={{ borderBottom: "1px solid #23272f" }}>
-                          <td style={{ padding: "1.1rem 1.5rem", fontWeight: 700 }}>{row.day}</td>
-                          <td style={{ padding: "1.1rem 1.5rem" }}>{row.classes.join(", ")}</td>
+                        <tr key={row.day} style={{ borderBottom: "1px solid #23272f", transition: 'background 0.18s' }}
+                           onMouseOver={e => e.currentTarget.style.background = 'rgba(34,211,238,0.08)'}
+                           onMouseOut={e => e.currentTarget.style.background = ''}>
+                          <td style={{ padding: "0.7rem 0.9rem", fontWeight: 700 }}>{row.day}</td>
+                          <td style={{ padding: "0.7rem 0.9rem" }}>{row.classes.join(", ")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -261,9 +285,9 @@ function TeacherDashboard({ onBack, teacherUser }) {
                     color: "#fff",
                     border: "none",
                     borderRadius: "14px",
-                    padding: "1.2rem 2.8rem",
+                    padding: "0.7rem 1.5rem", // reduced
                     fontWeight: 800,
-                    fontSize: "1.18rem",
+                    fontSize: "1rem",
                     cursor: "pointer",
                     opacity: 1,
                     boxShadow: "0 6px 24px rgba(34,211,238,0.18)",
@@ -271,6 +295,7 @@ function TeacherDashboard({ onBack, teacherUser }) {
                     letterSpacing: "0.7px",
                     transition: "all 0.2s",
                     outline: 'none',
+                    animation: 'pulseGlow 2.2s infinite',
                   }}
                   onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #06b6d4 0%, #22d3ee 100%)'}
                   onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #22d3ee 0%, #06b6d4 100%)'}
@@ -297,6 +322,22 @@ function TeacherDashboard({ onBack, teacherUser }) {
           0% { text-shadow: 0 0 5px #22d3ee55; }
           100% { text-shadow: 0 0 20px #22d3eecc, 0 0 30px #22d3ee99; }
         }
+        @keyframes pulseBar {
+          0%, 100% { opacity: 0.85; box-shadow: 0 0 16px #38bdf855; }
+          50% { opacity: 1; box-shadow: 0 0 32px #38bdf8cc; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 6px 24px rgba(34,211,238,0.18), 0 0 0 0 #22d3ee55; }
+          50% { box-shadow: 0 6px 32px rgba(34,211,238,0.28), 0 0 0 8px #22d3ee33; }
+        }
+        @keyframes blobMove {
+          0%, 100% { transform: scale(1) translateY(0px) translateX(0px); }
+          50% { transform: scale(1.08) translateY(30px) translateX(40px); }
+        }
+        @keyframes blobMove2 {
+          0%, 100% { transform: scale(1) translateY(0px) translateX(0px); }
+          50% { transform: scale(1.12) translateY(-30px) translateX(-40px); }
+        }
         button:hover {
           background: #22d3ee;
           transform: scale(1.08) translateX(-2px);
@@ -309,6 +350,89 @@ function TeacherDashboard({ onBack, teacherUser }) {
         div[style*='rgba(59,130,246,0.08)']:hover {
           box-shadow: 0 8px 32px rgba(34,211,238,0.13);
           transform: translateY(-2px) scale(1.04);
+        }
+        /* Responsive styles */
+        @media (max-width: 900px) {
+          main {
+            padding: 1.1rem 0.2rem !important;
+            gap: 0.7rem !important;
+          }
+          section[style*='max-width: 900px'],
+          section[style*='max-width: 800px'],
+          section[style*='max-width: 700px'] {
+            max-width: 100vw !important;
+            padding: 0 0.2rem !important;
+          }
+          .teacher-dashboard-heading {
+            font-size: 1rem !important;
+          }
+        }
+        @media (max-width: 700px) {
+          header {
+            padding: 0.7rem 0 0.4rem 0 !important;
+          }
+          main {
+            padding: 0.5rem 0.1rem !important;
+            gap: 0.5rem !important;
+          }
+          section[style*='max-width: 900px'],
+          section[style*='max-width: 800px'],
+          section[style*='max-width: 700px'] {
+            max-width: 100vw !important;
+            padding: 0 0.1rem !important;
+          }
+          .teacher-dashboard-heading {
+            font-size: 0.92rem !important;
+          }
+          .teacher-dashboard-subheading {
+            font-size: 0.82rem !important;
+          }
+          .timetable-table th, .timetable-table td {
+            padding: 0.5rem 0.3rem !important;
+            font-size: 0.92rem !important;
+          }
+        }
+        @media (max-width: 500px) {
+          header {
+            padding: 0.3rem 0 0.2rem 0 !important;
+          }
+          .teacher-dashboard-heading {
+            font-size: 0.82rem !important;
+          }
+          .teacher-dashboard-subheading {
+            font-size: 0.7rem !important;
+          }
+          main {
+            padding: 0.2rem 0.05rem !important;
+          }
+          section[style*='max-width: 900px'],
+          section[style*='max-width: 800px'],
+          section[style*='max-width: 700px'] {
+            padding: 0 0.05rem !important;
+          }
+          .timetable-table th, .timetable-table td {
+            padding: 0.32rem 0.15rem !important;
+            font-size: 0.8rem !important;
+          }
+          /* Stack back button and heading vertically */
+          header > div {
+            flex-direction: column !important;
+            gap: 0.2rem !important;
+          }
+          header button {
+            margin-bottom: 0.2rem !important;
+            margin-right: 0 !important;
+          }
+        }
+        /* Ensure table is scrollable on mobile */
+        section[style*='max-width: 800px'] > div[style*='background'] {
+          width: 100%;
+          min-width: 0;
+          overflow-x: auto;
+        }
+        table {
+          width: 100%;
+          min-width: 400px;
         }
       `}</style>
     </div>

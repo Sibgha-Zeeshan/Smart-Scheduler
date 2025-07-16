@@ -6,10 +6,7 @@ import AdminDashboard from "./AdminDashboard";
 import StudentDashboard from "./StudentDashboard";
 import TeacherDashboard from "./TeacherDashboard";
 
-const initialUsers = [
-  { email: "teacher@umt.edu.pk", password: "teacher123", role: "teacher" },
-  { email: "student@umt.edu.pk", password: "student123", role: "student" },
-];
+const initialUsers = [];
 
 function App() {
   const [showSignup, setShowSignup] = useState(false);
@@ -24,6 +21,7 @@ function App() {
   const [pendingLoginEmail, setPendingLoginEmail] = useState("");
   const [adminLogin, setAdminLogin] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
+  const [signupError, setSignupError] = useState("");
 
   const handleLogin = ({ email, password, username }) => {
     setLoading(true);
@@ -67,6 +65,17 @@ function App() {
   };
 
   const handleSignup = (signupData) => {
+    // Check for duplicate email or username in users or pendingSignups
+    const emailExists = users.some(u => u.email === signupData.email) || pendingSignups.some(u => u.email === signupData.email);
+    const usernameExists = users.some(u => u.username === signupData.username) || pendingSignups.some(u => u.username === signupData.username);
+    if (emailExists) {
+      setSignupError("This email is already registered or pending approval.");
+      return;
+    }
+    if (usernameExists) {
+      setSignupError("This username is already taken or pending approval.");
+      return;
+    }
     setPendingSignups((prev) => [...prev, signupData]);
     setShowSignup(false);
     setShowSignupSubmitted(true);
@@ -122,7 +131,7 @@ function App() {
           }}>
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowLogin(false)} style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer', zIndex: 2 }}>&times;</button>
-              <LoginForm onLogin={handleLogin} loading={loading} error={loginError} onClose={() => setShowLogin(false)} defaultEmail={adminLogin ? adminEmail : ""} adminLogin={adminLogin} />
+              <LoginForm onLogin={handleLogin} loading={loading} error={loginError} onClose={() => setShowLogin(false)} defaultEmail={adminLogin ? adminEmail : ""} adminLogin={adminLogin} zoomed={true} />
             </div>
           </div>
         </>
@@ -144,8 +153,37 @@ function App() {
             justifyContent: 'center',
             animation: 'fadeInUp 0.5s ease'
           }}>
-            <SignupForm onClose={() => setShowSignup(false)} onSignup={handleSignup} />
+            <SignupForm onClose={() => setShowSignup(false)} onSignup={handleSignup} users={users} pendingSignups={pendingSignups} />
           </div>
+          {signupError && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(16, 23, 42, 0.7)',
+              zIndex: 2000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <div style={{
+                background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)',
+                borderRadius: '12px',
+                padding: '1.1rem 1.5rem',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                maxWidth: '320px',
+                textAlign: 'center',
+                color: '#f1f5f9',
+                border: '1px solid rgba(255,255,255,0.08)'
+              }}>
+                <h3 style={{ color: '#ff6b6b', marginBottom: '0.7rem', fontSize: '1.05rem' }}>Signup Error</h3>
+                <div style={{ fontSize: '0.97rem', color: '#f1f5f9', marginBottom: '1.1rem' }}>{signupError}</div>
+                <button onClick={() => setSignupError("")} style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', border: 'none', color: 'white', borderRadius: '6px', padding: '0.4rem 1rem', fontWeight: '600', fontSize: '0.93rem', cursor: 'pointer' }}>OK</button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -166,20 +204,20 @@ function App() {
         }}>
           <div style={{
             background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)',
-            borderRadius: '24px',
-            padding: '3rem 2.5rem',
-            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
-            maxWidth: '400px',
+            borderRadius: '14px',
+            padding: '1.5rem 2.2rem', // wider horizontal padding
+            boxShadow: '0 12px 24px rgba(0, 0, 0, 0.18)',
+            maxWidth: '340px', // wider
             textAlign: 'center',
             color: '#f1f5f9',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid rgba(255,255,255,0.08)'
           }}>
-            <h2 style={{ color: '#22d3ee', marginBottom: '1.5rem' }}>Signup Request Sent!</h2>
-            <p style={{ fontSize: '1.15rem', color: '#94a3b8', marginBottom: '2rem' }}>
+            <h2 style={{ color: '#22d3ee', marginBottom: '0.8rem', fontSize: '1.1rem' }}>Signup Request Sent!</h2>
+            <p style={{ fontSize: '0.93rem', color: '#94a3b8', marginBottom: '1.1rem' }}>
               Your signup request has been submitted.<br />
               Please wait for admin approval before logging in.
             </p>
-            <button onClick={() => setShowSignupSubmitted(false)} style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', border: 'none', color: 'white', borderRadius: '8px', padding: '0.8rem 2rem', fontWeight: '600', fontSize: '1.1rem', cursor: 'pointer' }}>OK</button>
+            <button onClick={() => setShowSignupSubmitted(false)} style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', border: 'none', color: 'white', borderRadius: '6px', padding: '0.5rem 1.1rem', fontWeight: '600', fontSize: '0.93rem', cursor: 'pointer' }}>OK</button>
           </div>
         </div>
       )}
@@ -219,7 +257,7 @@ function App() {
         </div>
       )}
 
-      <div className="main-bg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)', minHeight: '100vh' }}>
+      <div className="main-bg" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)', minHeight: '100vh', zoom: 0.67 }}>
         {/* Decorative Blobs */}
         <div className="bg-blob bg-blob-1" style={{ 
           position: 'absolute', 
@@ -229,7 +267,7 @@ function App() {
           height: '300px', 
           background: 'radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 6s ease-in-out infinite, pulse 4s ease-in-out infinite'
+          animation: 'float 6s ease-in-out infinite alternate, pulse 4s ease-in-out infinite, blobGlow 8s ease-in-out infinite alternate'
         }} />
         <div className="bg-blob bg-blob-2" style={{ 
           position: 'absolute', 
@@ -239,7 +277,7 @@ function App() {
           height: '400px', 
           background: 'radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 8s ease-in-out infinite reverse, pulse 4s ease-in-out infinite 2s'
+          animation: 'float 8s ease-in-out infinite reverse alternate, pulse 4s ease-in-out infinite 2s, blobGlow 10s ease-in-out infinite alternate'
         }} />
         <div className="bg-blob bg-blob-3" style={{ 
           position: 'absolute', 
@@ -249,18 +287,18 @@ function App() {
           height: '200px', 
           background: 'radial-gradient(circle, rgba(78, 205, 196, 0.1) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 10s ease-in-out infinite, rotate 20s linear infinite'
+          animation: 'float 10s ease-in-out infinite alternate, rotate 20s linear infinite, blobGlow 12s ease-in-out infinite alternate'
         }} />
 
         {/* Hero Section - text and login form side by side */}
         <section className="hero-flex-row" style={{ width: '100%', maxWidth: 1600, margin: '5rem auto 4rem auto', display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: '8rem', background: 'none', boxShadow: 'none', borderRadius: 0, padding: 0, position: 'relative', zIndex: 1 }}>
-          <div className="hero-text-col" style={{ flex: 1, minWidth: 260, maxWidth: 520, textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', padding: '4rem', animation: 'slideInLeft 1s ease-out' }}>
-            <h1 className="hero-title gradient-text" style={{ marginBottom: '1.5rem', textAlign: 'left', fontSize: '3.5rem', background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: '700', letterSpacing: '-1px', lineHeight: '1.2', animation: 'glow 3s ease-in-out infinite alternate' }}>Smart Scheduler</h1>
-            <p style={{ fontSize: '1.5rem', color: '#f1f5f9', lineHeight: '1.6', fontWeight: 400, marginBottom: '2.5rem', maxWidth: 600 }}>
+          <div className="hero-text-col" style={{ flex: 1, minWidth: 260, maxWidth: 520, textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', padding: '4rem', animation: 'fadeInUpHero 1.1s cubic-bezier(.39,.575,.56,1.000) 0.1s both' }}>
+            <h1 className="hero-title gradient-text" style={{ marginBottom: '1.5rem', textAlign: 'left', fontSize: '3.5rem', background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: '700', letterSpacing: '-1px', lineHeight: '1.2', animation: 'fadeInUpHeroTitle 1.2s cubic-bezier(.39,.575,.56,1.000) 0.2s both, glow 3s ease-in-out infinite alternate' }}>Smart Scheduler</h1>
+            <p style={{ fontSize: '1.5rem', color: '#f1f5f9', lineHeight: '1.6', fontWeight: 400, marginBottom: '2.5rem', maxWidth: 600, animation: 'fadeInUpHeroDesc 1.2s cubic-bezier(.39,.575,.56,1.000) 0.5s both' }}>
               Welcome to Smart Scheduler, your intelligent assistant for building a conflict-free timetable. Effortlessly organize your classes, meetings, and personal events in one place. Our platform is designed to simplify your scheduling experience, helping you stay focused on what matters most. Join us and take the stress out of planning!
             </p>
           </div>
-          <div className="hero-login-form" style={{ flex: 1, minWidth: 400, maxWidth: 500, minHeight: 600, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', animation: 'slideInRight 1s ease-out 0.3s both' }}>
+          <div className="hero-login-form" style={{ flex: 1, minWidth: 400, maxWidth: 500, minHeight: 600, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', animation: 'scaleInLogin 1.1s cubic-bezier(.39,.575,.56,1.000) 0.7s both' }}>
             <LoginForm 
               onLogin={handleLogin}
               loading={loading}
@@ -317,10 +355,10 @@ function App() {
         {/* About Us Component */}
         <section style={{ width: '100vw', minWidth: '100vw', maxWidth: '100vw', position: 'static', left: 0, right: 0, margin: 0, padding: 0, background: 'linear-gradient(120deg, #16213e 0%, #0f172a 100%)', overflow: 'hidden', zIndex: 2 }}>
           {/* Soft mesh SVG pattern overlay */}
-          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100%', zIndex: 1, opacity: 0.18, pointerEvents: 'none' }} viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', minWidth: '100vw', maxWidth: '100vw', height: '100%', zIndex: 1, opacity: 0.18, pointerEvents: 'none', transform: 'scale(1.5)', transformOrigin: 'top left' }} viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path fill="#22d3ee" fillOpacity="0.18" d="M0,160L60,170.7C120,181,240,203,360,197.3C480,192,600,160,720,133.3C840,107,960,85,1080,101.3C1200,117,1320,171,1380,197.3L1440,224L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z" />
           </svg>
-          <div className="aboutus-fadein" style={{ maxWidth: 900, margin: '6rem auto', padding: '2.5rem 2rem', background: 'rgba(16,23,42,0.92)', borderRadius: '2rem', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+          <div className="aboutus-fadein" style={{ maxWidth: 900, margin: '3.5rem auto', padding: '1.2rem 2.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2, textAlign: 'center', background: 'rgba(16,23,42,0.92)', borderRadius: '2rem', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)' }}>
             <h2 className="aboutus-heading-anim" style={{ fontSize: '2.3rem', fontWeight: 900, marginBottom: '1.2rem', letterSpacing: '-1.5px', lineHeight: 1.15, color: '#22d3ee' }}>About Us</h2>
             <div className="aboutus-mission-anim" style={{ color: '#38bdf8', fontWeight: 600, fontSize: '1.25rem', marginBottom: '1.7rem', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 700 }}>
               Empowering you to make the most of your time.
@@ -650,6 +688,193 @@ function App() {
         .stat-block:hover {
           transform: scale(1.05);
           transition: all 0.3s ease;
+        }
+        /* Responsive styles for main landing page and navbar */
+        @media (max-width: 900px) {
+          .hero-flex-row {
+            flex-direction: column !important;
+            gap: 1.2rem !important;
+            margin-top: 1.2rem !important;
+            margin-bottom: 1.2rem !important;
+            padding: 0 0.2rem !important;
+            align-items: center !important;
+          }
+          .hero-text-col, .hero-login-form {
+            max-width: 100% !important;
+            min-width: 0 !important;
+            padding: 1rem 0.2rem !important;
+            height: auto !important;
+            align-items: center !important;
+            text-align: center !important;
+            justify-content: center !important;
+          }
+          .hero-title.gradient-text {
+            text-align: center !important;
+            font-size: 2rem !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+          .topbar-inner {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            padding-left: 0.2rem !important;
+            padding-right: 0.2rem !important;
+            height: auto !important;
+          }
+          .topbar-actions {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+          }
+        }
+        @media (max-width: 700px) {
+          .hero-title.gradient-text {
+            font-size: 1.3rem !important;
+          }
+          .hero-flex-row {
+            margin-top: 0.7rem !important;
+            margin-bottom: 0.7rem !important;
+            gap: 0.7rem !important;
+          }
+          .hero-text-col, .hero-login-form {
+            padding: 0.7rem 0.1rem !important;
+          }
+          .aboutus-fadein {
+            padding: 0.7rem 0.2rem !important;
+            margin: 1.2rem auto !important;
+          }
+          .aboutus-heading-anim {
+            font-size: 1.1rem !important;
+          }
+          .topbar-inner {
+            flex-direction: column !important;
+            gap: 0.3rem !important;
+            height: auto !important;
+          }
+          .topbar, .glass-navbar {
+            height: auto !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .hero-title.gradient-text {
+            font-size: 0.95rem !important;
+          }
+          .hero-flex-row {
+            gap: 0.2rem !important;
+          }
+          .aboutus-fadein {
+            padding: 0.2rem 0.05rem !important;
+          }
+          .topbar-inner {
+            padding-left: 0.1rem !important;
+            padding-right: 0.1rem !important;
+            height: auto !important;
+          }
+          .topbar, .glass-navbar {
+            height: auto !important;
+          }
+        }
+        /* Compact font and spacing for all */
+        .main-bg, .topbar, .glass-navbar, .topbar-inner, .hero-flex-row, .hero-text-col, .hero-login-form {
+          font-size: 0.98rem;
+        }
+        .topbar-btn, .signup-btn {
+          border-radius: 8px !important;
+        }
+        @media (max-width: 900px) {
+          section[style*='About Us'] svg {
+            transform: scale(2) !important;
+          }
+        }
+        @media (max-width: 600px) {
+          section[style*='About Us'] svg {
+            transform: scale(2.5) !important;
+          }
+        }
+        .topbar, .glass-navbar {
+          height: 48px !important;
+          min-height: 48px !important;
+          padding: 0 !important;
+        }
+        .topbar-inner {
+          height: 48px !important;
+          min-height: 48px !important;
+          padding-left: 7rem !important;
+          padding-right: 2.5rem !important;
+        }
+        .logo-text {
+          font-size: 1.15rem !important;
+        }
+        .topbar-btn, .signup-btn {
+          font-size: 0.98rem !important;
+          padding: 0.35rem 0.9rem !important;
+        }
+        @media (max-width: 900px) {
+          .topbar, .glass-navbar, .topbar-inner {
+            height: 40px !important;
+            min-height: 40px !important;
+          }
+          .topbar-inner {
+            padding-left: 4rem !important;
+            padding-right: 1.5rem !important;
+          }
+          .logo-text {
+            font-size: 1rem !important;
+          }
+          .topbar-btn, .signup-btn {
+            font-size: 0.93rem !important;
+            padding: 0.28rem 0.7rem !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .topbar, .glass-navbar, .topbar-inner {
+            height: 36px !important;
+            min-height: 36px !important;
+          }
+          .topbar-inner {
+            padding-left: 2rem !important;
+            padding-right: 0.7rem !important;
+          }
+          .logo-text {
+            font-size: 0.88rem !important;
+          }
+          .topbar-btn, .signup-btn {
+            font-size: 0.88rem !important;
+            padding: 0.18rem 0.5rem !important;
+          }
+        }
+        .main-bg {
+          animation: gradientBG 18s ease-in-out infinite alternate;
+          background-size: 200% 200% !important;
+        }
+        @keyframes gradientBG {
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 100% 50%;
+          }
+        }
+        @keyframes fadeInUpHero {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUpHeroTitle {
+          from { opacity: 0; transform: translateY(60px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInUpHeroDesc {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleInLogin {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes blobGlow {
+          0% { filter: drop-shadow(0 0 0px #22d3ee00); }
+          100% { filter: drop-shadow(0 0 32px #22d3ee55); }
         }
       `}</style>
     </>

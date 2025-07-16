@@ -26,46 +26,72 @@ function HistoryPanel({ accepted }) {
 
   return (
     <div style={{
-      width: '100%', minHeight: '80vh',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #22d3ee 100%)',
+      width: '100%',
+      minHeight: '100vh', // ensure full page coverage
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', // match main theme
       color: '#f1f5f9',
-      padding: '3rem 0',
+      padding: '2rem 0',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Glassmorphism + gradient border card */}
+      {/* Decorative Animated Blobs - theme colors */}
       <div style={{
         position: 'absolute',
-        top: 0, left: 0, width: '100%', height: '100%',
-        background: 'rgba(30,41,59,0.65)',
-        backdropFilter: 'blur(18px)',
+        top: '-60px',
+        left: '10%',
+        width: '220px',
+        height: '220px',
+        background: 'radial-gradient(circle, rgba(34,211,238,0.13) 0%, transparent 70%)', // cyan blob
+        borderRadius: '50%',
+        filter: 'blur(60px)',
+        opacity: 0.13,
+        pointerEvents: 'none',
         zIndex: 0,
+        animation: 'float 7s ease-in-out infinite alternate, pulse 4s ease-in-out infinite',
       }} />
-      <h2 style={{ fontSize: '2.3rem', color: '#22d3ee', fontWeight: 900, marginBottom: '2.5rem', letterSpacing: '-1.5px', zIndex: 2, display: 'flex', alignItems: 'center', gap: 12, textShadow: '0 2px 12px #22d3ee33' }}>
-        <CheckCircle size={32} color="#38bdf8" style={{ verticalAlign: 'middle' }} />
-        Accepted Users
-      </h2>
+      <div style={{
+        position: 'absolute',
+        bottom: '-80px',
+        right: '8%',
+        width: '260px',
+        height: '260px',
+        background: 'radial-gradient(circle, rgba(59,130,246,0.13) 0%, transparent 70%)', // blue blob
+        borderRadius: '50%',
+        filter: 'blur(60px)',
+        opacity: 0.13,
+        pointerEvents: 'none',
+        zIndex: 0,
+        animation: 'float 10s ease-in-out infinite alternate-reverse, pulse 6s ease-in-out infinite',
+      }} />
+      {/* Removed the soft gradient overlay that caused partition */}
       <div className="history-glass-card" style={{
-        width: '95%',
-        maxWidth: 1100,
-        borderRadius: 24,
+        width: '98%',
+        maxWidth: 800, // moderately compact
+        borderRadius: 16, // moderately compact
         background: 'rgba(30,41,59,0.85)',
-        boxShadow: '0 8px 48px #22d3ee33, 0 2px 12px #22d3ee22',
-        padding: '2.5rem 1.5rem',
+        boxShadow: '0 12px 48px #22d3ee33, 0 2px 12px #22d3ee22',
+        padding: '1.7rem 1rem', // moderately compact
         zIndex: 2,
         overflowX: 'auto',
         border: '2.5px solid',
         borderImage: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%) 1',
-        animation: 'fadeInUp 1s cubic-bezier(.39,.575,.56,1.000) both',
+        animation: 'fadeInUp 1.1s cubic-bezier(.39,.575,.56,1.000) both, glow 2.5s ease-in-out infinite alternate',
+        backdropFilter: 'blur(18px)',
+        marginTop: '2.5rem',
+        marginBottom: '2.5rem',
       }}>
-        <table className="history-table-modern" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: 'none', borderRadius: 18, overflow: 'hidden' }}>
+        <h2 style={{ fontSize: '1.3rem', color: '#22d3ee', fontWeight: 800, marginBottom: '1.1rem', letterSpacing: '-1px', zIndex: 2, display: 'flex', alignItems: 'center', gap: 8, textShadow: '0 2px 8px #22d3ee22', animation: 'fadeInUp 1.2s cubic-bezier(.39,.575,.56,1.000) both' }}>
+          <CheckCircle size={18} color="#38bdf8" style={{ verticalAlign: 'middle' }} />
+          Accepted Users
+        </h2>
+        <table className="history-table-modern" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: 'none', borderRadius: 12, overflow: 'hidden', fontSize: '1rem', animation: 'fadeInUp 1.2s cubic-bezier(.39,.575,.56,1.000) 0.2s both' }}>
           <thead>
-            <tr style={{ color: '#38bdf8', fontWeight: 900, fontSize: '1.18rem', background: 'rgba(34,211,238,0.13)' }}>
-              <th style={{ padding: '1.1rem 0.7rem', textAlign: 'left', borderBottom: '2.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Username</th>
-              <th style={{ padding: '1.1rem 0.7rem', textAlign: 'left', borderBottom: '2.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Email</th>
-              <th style={{ padding: '1.1rem 0.7rem', textAlign: 'left', borderBottom: '2.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Role</th>
-              <th style={{ padding: '1.1rem 0.7rem', textAlign: 'center', borderBottom: '2.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Actions</th>
+            <tr style={{ color: '#38bdf8', fontWeight: 700, fontSize: '1.05rem', background: 'rgba(34,211,238,0.10)' }}>
+              <th style={{ padding: '0.7rem 0.5rem', textAlign: 'left', borderBottom: '1.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Username</th>
+              <th style={{ padding: '0.7rem 0.5rem', textAlign: 'left', borderBottom: '1.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Email</th>
+              <th style={{ padding: '0.7rem 0.5rem', textAlign: 'left', borderBottom: '1.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Role</th>
+              <th style={{ padding: '0.7rem 0.5rem', textAlign: 'center', borderBottom: '1.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +104,7 @@ function HistoryPanel({ accepted }) {
                 transition: 'background 0.2s',
                 borderRadius: 12,
                 boxShadow: editIdx === idx ? '0 2px 12px #22d3ee33' : 'none',
+                animation: `fadeInUpRow 0.8s cubic-bezier(.39,.575,.56,1.000) both ${0.15 + idx * 0.07}s`,
               }}>
                 {editIdx === idx ? (
                   <>
@@ -85,15 +112,15 @@ function HistoryPanel({ accepted }) {
                     <td><input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="history-input-modern" style={inputStyle} /></td>
                     <td><input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className="history-input-modern" style={inputStyle} /></td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className="history-btn-modern" style={btnStyle} onClick={() => handleSave(idx)}>Save</button>
-                      <button className="history-btn-modern" style={btnStyle} onClick={() => setEditIdx(null)}>Cancel</button>
+                      <button className="history-btn-modern" style={{ ...btnStyle, padding: '0.32rem 0.9rem', fontSize: '1rem' }} onClick={() => handleSave(idx)}>Save</button>
+                      <button className="history-btn-modern" style={{ ...btnStyle, padding: '0.32rem 0.9rem', fontSize: '1rem' }} onClick={() => setEditIdx(null)}>Cancel</button>
                     </td>
                   </>
                 ) : (
                   <>
-                    <td style={{ fontWeight: 700, fontSize: '1.07rem', letterSpacing: '-0.5px' }}>{item.username || <span style={{ color: '#64748b' }}>N/A</span>}</td>
-                    <td style={{ color: '#a5b4fc', fontWeight: 500 }}>{item.email}</td>
-                    <td style={{ color: '#38bdf8', fontWeight: 600 }}>{item.role}
+                    <td style={{ fontWeight: 600, fontSize: '1rem', letterSpacing: '-0.5px' }}>{item.username || <span style={{ color: '#64748b' }}>N/A</span>}</td>
+                    <td style={{ color: '#a5b4fc', fontWeight: 400, fontSize: '0.98rem' }}>{item.email}</td>
+                    <td style={{ color: '#38bdf8', fontWeight: 500, fontSize: '0.98rem' }}>{item.role}
                       <span style={{ marginLeft: 10, verticalAlign: 'middle', display: 'inline-block' }}>
                         <span className="status-badge" style={{
                           background: 'linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%)',
@@ -109,8 +136,8 @@ function HistoryPanel({ accepted }) {
                       </span>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <button className="history-icon-btn-modern" style={iconBtnStyle} onClick={() => handleEdit(idx)} title="Edit"><Edit2 size={20} color="#38bdf8" /></button>
-                      <button className="history-icon-btn-modern" style={iconBtnStyle} onClick={() => handleDelete(idx)} title="Delete"><Trash2 size={20} color="#f43f5e" /></button>
+                      <button className="history-icon-btn-modern" style={{ ...iconBtnStyle, padding: '0.15rem' }} onClick={() => handleEdit(idx)} title="Edit"><Edit2 size={15} color="#38bdf8" /></button>
+                      <button className="history-icon-btn-modern" style={{ ...iconBtnStyle, padding: '0.15rem' }} onClick={() => handleDelete(idx)} title="Delete"><Trash2 size={15} color="#f43f5e" /></button>
                     </td>
                   </>
                 )}
@@ -120,6 +147,18 @@ function HistoryPanel({ accepted }) {
         </table>
       </div>
       <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+        @keyframes glow {
+          0% { box-shadow: 0 0 12px #38bdf855; }
+          100% { box-shadow: 0 0 32px #38bdf8cc, 0 0 48px #38bdf899; }
+        }
         .history-glass-card {
           animation: fadeInUp 1s cubic-bezier(.39,.575,.56,1.000) both;
         }
@@ -177,6 +216,10 @@ function HistoryPanel({ accepted }) {
         }
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUpRow {
+          from { opacity: 0; transform: translateY(24px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
