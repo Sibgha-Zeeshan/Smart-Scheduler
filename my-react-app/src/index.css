@@ -155,7 +155,8 @@ section {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+
 }
 .hero-desc {
   font-size: 1.35rem;
