@@ -32,7 +32,12 @@ function LoginForm({ onLogin, onClose, loading, error, defaultEmail = "", adminL
       position: 'relative',
       overflow: 'hidden',
       zIndex: 1001,
-      ...(zoomed ? { zoom: 0.67 } : {})
+      ...(zoomed ? { zoom: 0.67 } : {}),
+      '@media (max-width: 768px)': {
+        padding: '2rem',
+        maxWidth: '350px',
+        borderRadius: '16px'
+      }
     }}>
       {/* Decorative gradient overlay */}
       <div style={{
@@ -55,36 +60,180 @@ function LoginForm({ onLogin, onClose, loading, error, defaultEmail = "", adminL
         fontWeight: '800',
         marginTop: '0',
         letterSpacing: '-1px',
-        lineHeight: '1.1'
+        lineHeight: '1.1',
+        '@media (max-width: 768px)': {
+          fontSize: '2rem',
+          marginBottom: '2rem'
+        }
       }}>
         Welcome Back
       </h2>
-      <form style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }} onSubmit={handleSubmit}>
+      <form style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '2.5rem',
+        '@media (max-width: 768px)': {
+          gap: '1.5rem'
+        }
+      }} onSubmit={handleSubmit}>
         {adminLogin ? (
           <>
             <div>
-              <label htmlFor="username" style={{ fontSize: '1.1rem', color: '#a8b2d1', fontWeight: '600', display: 'block', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Username</label>
-              <input type="text" id="username" placeholder="Enter admin username" value={username} onChange={e => setUsername(e.target.value)} style={{ width: '100%', padding: '1.25rem 1.5rem', border: '2px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', fontSize: '1.15rem', color: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.05)', boxSizing: 'border-box', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)' }} />
+              <label htmlFor="username" style={{ 
+                fontSize: '1.1rem', 
+                color: '#a8b2d1', 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '1rem', 
+                textTransform: 'uppercase', 
+                letterSpacing: '1px',
+                '@media (max-width: 768px)': {
+                  fontSize: '1rem',
+                  marginBottom: '0.75rem'
+                }
+              }}>Admin Username</label>
+              <input type="text" id="username" placeholder="Enter admin username" value={username} onChange={e => setUsername(e.target.value)} style={{ 
+                width: '100%', 
+                padding: '1.25rem 1.5rem', 
+                border: '2px solid rgba(255, 255, 255, 0.1)', 
+                borderRadius: '12px', 
+                fontSize: '1.15rem', 
+                color: '#ffffff', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                boxSizing: 'border-box', 
+                transition: 'all 0.3s ease', 
+                backdropFilter: 'blur(10px)',
+                '@media (max-width: 768px)': {
+                  padding: '1rem 1.25rem',
+                  fontSize: '1rem',
+                  borderRadius: '8px'
+                }
+              }} />
             </div>
             <div>
-              <label htmlFor="password" style={{ fontSize: '1.1rem', color: '#a8b2d1', fontWeight: '600', display: 'block', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
-              <input type="password" id="password" placeholder="Enter admin password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '1.25rem 1.5rem', border: '2px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', fontSize: '1.15rem', color: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.05)', boxSizing: 'border-box', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)' }} />
+              <label htmlFor="password" style={{ 
+                fontSize: '1.1rem', 
+                color: '#a8b2d1', 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '1rem', 
+                textTransform: 'uppercase', 
+                letterSpacing: '1px',
+                '@media (max-width: 768px)': {
+                  fontSize: '1rem',
+                  marginBottom: '0.75rem'
+                }
+              }}>Password</label>
+              <input type="password" id="password" placeholder="Enter admin password" value={password} onChange={e => setPassword(e.target.value)} style={{ 
+                width: '100%', 
+                padding: '1.25rem 1.5rem', 
+                border: '2px solid rgba(255, 255, 255, 0.1)', 
+                borderRadius: '12px', 
+                fontSize: '1.15rem', 
+                color: '#ffffff', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                boxSizing: 'border-box', 
+                transition: 'all 0.3s ease', 
+                backdropFilter: 'blur(10px)',
+                '@media (max-width: 768px)': {
+                  padding: '1rem 1.25rem',
+                  fontSize: '1rem',
+                  borderRadius: '8px'
+                }
+              }} />
             </div>
           </>
         ) : (
           <>
             <div>
-              <label htmlFor="email" style={{ fontSize: '1.1rem', color: '#a8b2d1', fontWeight: '600', display: 'block', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Email Address</label>
-              <input type="email" id="email" placeholder="Enter your Email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', padding: '1.25rem 1.5rem', border: '2px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', fontSize: '1.15rem', color: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.05)', boxSizing: 'border-box', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)' }} />
+              <label htmlFor="email" style={{ 
+                fontSize: '1.1rem', 
+                color: '#a8b2d1', 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '1rem', 
+                textTransform: 'uppercase', 
+                letterSpacing: '1px',
+                '@media (max-width: 768px)': {
+                  fontSize: '1rem',
+                  marginBottom: '0.75rem'
+                }
+              }}>Email Address</label>
+              <input type="email" id="email" placeholder="Enter your Email" value={email} onChange={e => setEmail(e.target.value)} style={{ 
+                width: '100%', 
+                padding: '1.25rem 1.5rem', 
+                border: '2px solid rgba(255, 255, 255, 0.1)', 
+                borderRadius: '12px', 
+                fontSize: '1.15rem', 
+                color: '#ffffff', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                boxSizing: 'border-box', 
+                transition: 'all 0.3s ease', 
+                backdropFilter: 'blur(10px)',
+                '@media (max-width: 768px)': {
+                  padding: '1rem 1.25rem',
+                  fontSize: '1rem',
+                  borderRadius: '8px'
+                }
+              }} />
             </div>
             <div>
-              <label htmlFor="password" style={{ fontSize: '1.1rem', color: '#a8b2d1', fontWeight: '600', display: 'block', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
-              <input type="password" id="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '1.25rem 1.5rem', border: '2px solid rgba(255, 255, 255, 0.1)', borderRadius: '12px', fontSize: '1.15rem', color: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.05)', boxSizing: 'border-box', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)' }} />
+              <label htmlFor="password" style={{ 
+                fontSize: '1.1rem', 
+                color: '#a8b2d1', 
+                fontWeight: '600', 
+                display: 'block', 
+                marginBottom: '1rem', 
+                textTransform: 'uppercase', 
+                letterSpacing: '1px',
+                '@media (max-width: 768px)': {
+                  fontSize: '1rem',
+                  marginBottom: '0.75rem'
+                }
+              }}>Password</label>
+              <input type="password" id="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} style={{ 
+                width: '100%', 
+                padding: '1.25rem 1.5rem', 
+                border: '2px solid rgba(255, 255, 255, 0.1)', 
+                borderRadius: '12px', 
+                fontSize: '1.15rem', 
+                color: '#ffffff', 
+                backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                boxSizing: 'border-box', 
+                transition: 'all 0.3s ease', 
+                backdropFilter: 'blur(10px)',
+                '@media (max-width: 768px)': {
+                  padding: '1rem 1.25rem',
+                  fontSize: '1rem',
+                  borderRadius: '8px'
+                }
+              }} />
             </div>
           </>
         )}
         {error && <div style={{ color: '#ff6b6b', marginTop: '-1rem', fontSize: '1rem', textAlign: 'center' }}>{error}</div>}
-        <button type="submit" style={{ width: '100%', padding: '1.375rem 1.5rem', background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)', border: 'none', borderRadius: '12px', color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', marginTop: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)' }} disabled={loading}>
+        <button type="submit" style={{ 
+          width: '100%', 
+          padding: '1.375rem 1.5rem', 
+          background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)', 
+          border: 'none', 
+          borderRadius: '12px', 
+          color: '#ffffff', 
+          fontSize: '1.25rem', 
+          fontWeight: '700', 
+          cursor: 'pointer', 
+          transition: 'all 0.3s ease', 
+          marginTop: '1.5rem', 
+          textTransform: 'uppercase', 
+          letterSpacing: '1px', 
+          boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)',
+          '@media (max-width: 768px)': {
+            padding: '1rem 1.25rem',
+            fontSize: '1.1rem',
+            borderRadius: '8px',
+            marginTop: '1rem'
+          }
+        }} disabled={loading}>
           {loading ? 'Loading...' : 'Sign In'}
         </button>
       </form>

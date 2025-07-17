@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import HistoryPanel from "./HistoryPanel";
+import TimetableUpload from "./TimetableUpload";
 
-function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onReject, onBack }) {
+function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onReject, onBack, adminUser }) {
   const [showHistory, setShowHistory] = useState(false);
+  const [showTimetable, setShowTimetable] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const stats = [
     { label: 'Total Users', value: users.length, icon: '👥', color: '#38bdf8' },
     { label: 'Pending Requests', value: pendingSignups.length, icon: '⏳', color: '#fbbf24' },
@@ -59,8 +62,9 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
           <div className="admin-navbar-links" style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', fontWeight: 600, fontSize: '1rem', marginRight: '1.2rem' }}>
-            <a href="#dashboard" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(false); }}>Dashboard</a>
-            <a href="#history" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(true); }}>History</a>
+            <a href="#dashboard" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(false); setShowTimetable(false); }}>Dashboard</a>
+            <a href="#history" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(true); setShowTimetable(false); }}>History</a>
+            <a href="#timetable" className="admin-navbar-link" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s, border-bottom 0.2s', paddingBottom: 2, borderBottom: '2px solid transparent' }} onClick={e => { e.preventDefault(); setShowHistory(false); setShowTimetable(true); }}>Timetable</a>
           </div>
           <button className="admin-navbar-logout" onClick={onBack} style={{
             background: 'linear-gradient(90deg, #22d3ee 0%, #06b6d4 100%)',
@@ -75,6 +79,60 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
             transition: 'background 0.2s, transform 0.2s, box-shadow 0.2s',
             letterSpacing: '0.3px',
           }}>Logout</button>
+          {/* Hamburger Menu for Mobile */}
+          <button
+            className="admin-hamburger"
+            onClick={() => setNavOpen(!navOpen)}
+            style={{
+              display: 'none',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              marginLeft: 'auto',
+              zIndex: 120,
+            }}
+            aria-label="Toggle navigation menu"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          {/* Mobile Dropdown Menu */}
+          <div className={`admin-mobile-menu ${navOpen ? 'open' : ''}`} style={{
+            display: 'none',
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            background: 'rgba(26,26,46,0.98)',
+            boxShadow: '0 8px 32px 0 rgba(34,211,238,0.13), 0 1.5px 12px 0 #0ea5e955',
+            borderRadius: '0 0 18px 18px',
+            zIndex: 110,
+            padding: '1.2rem 1.5rem',
+            gap: '1.1rem',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            minWidth: '180px',
+          }}>
+            <a href="#dashboard" className="admin-mobile-link" style={{ color: '#cbd5e1', textDecoration: 'none', padding: '0.8rem 1rem', borderRadius: '8px', transition: 'background 0.2s', fontWeight: 600 }} onClick={e => { e.preventDefault(); setShowHistory(false); setShowTimetable(false); setNavOpen(false); }}>Dashboard</a>
+            <a href="#history" className="admin-mobile-link" style={{ color: '#cbd5e1', textDecoration: 'none', padding: '0.8rem 1rem', borderRadius: '8px', transition: 'background 0.2s', fontWeight: 600 }} onClick={e => { e.preventDefault(); setShowHistory(true); setShowTimetable(false); setNavOpen(false); }}>History</a>
+            <a href="#timetable" className="admin-mobile-link" style={{ color: '#cbd5e1', textDecoration: 'none', padding: '0.8rem 1rem', borderRadius: '8px', transition: 'background 0.2s', fontWeight: 600 }} onClick={e => { e.preventDefault(); setShowHistory(false); setShowTimetable(true); setNavOpen(false); }}>Timetable</a>
+            <button className="admin-mobile-logout" onClick={() => { onBack(); setNavOpen(false); }} style={{
+              background: 'linear-gradient(90deg, #22d3ee 0%, #06b6d4 100%)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.8rem 1rem',
+              fontWeight: 700,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(34,211,238,0.13)',
+              transition: 'background 0.2s, transform 0.2s',
+              letterSpacing: '0.3px',
+            }}>Logout</button>
+          </div>
         </div>
         <style>{`
           .admin-navbar-glass {
@@ -112,6 +170,10 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
           pending={pendingSignups}
           rejected={rejectedUsers}
           onClose={() => setShowHistory(false)}
+        />
+      ) : showTimetable ? (
+        <TimetableUpload
+          onBack={() => setShowTimetable(false)}
         />
       ) : (
         <>
@@ -199,9 +261,36 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
             }}>
               Admin Dashboard
             </h1>
-            <p style={{ fontSize: '0.92rem', color: '#cbd5e1', marginTop: '0.4rem', fontWeight: 500, letterSpacing: '0.3px', animation: 'fadeInUp 1s ease-out 0.3s both' }}>
-              Welcome, <span style={{ color: '#fff', fontWeight: 700 }}>UMT Admin</span>! Manage user signups and approve or reject new accounts below.
-            </p>
+            {adminUser ? (
+              <div style={{
+                fontSize: '1rem',
+                color: '#38bdf8',
+                fontWeight: 600,
+                marginTop: '0.3rem',
+                marginBottom: '0.2rem',
+                textAlign: 'center',
+                letterSpacing: '0.2px',
+                animation: 'fadeInUp 1s ease-out 0.3s both',
+                position: 'relative',
+                display: 'inline-block',
+              }}>
+                Welcome, {adminUser.username}!
+                <span style={{
+                  display: 'block',
+                  width: '40px',
+                  height: '2px',
+                  margin: '0.2rem auto 0 auto',
+                  borderRadius: '1px',
+                  background: 'linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%)',
+                  opacity: 0.6,
+                  animation: 'pulseBar 2.2s infinite',
+                }} />
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.92rem', color: '#cbd5e1', marginTop: '0.4rem', fontWeight: 500, letterSpacing: '0.3px', animation: 'fadeInUp 1s ease-out 0.3s both' }}>
+                Welcome, <span style={{ color: '#fff', fontWeight: 700 }}>UMT Admin</span>! Manage user signups and approve or reject new accounts below.
+              </p>
+            )}
             {/* Stats Bar */}
             <div style={{
               display: 'flex',
@@ -209,13 +298,14 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
               alignItems: 'center',
               gap: '1.1rem',
               margin: '1.1rem auto 0 auto',
-              padding: '1.1rem 3.5rem', // increased padding
+              padding: '1.1rem 3.5rem',
               background: 'rgba(24,24,27,0.97)',
               borderRadius: '1rem',
               boxShadow: '0 2px 8px rgba(56,189,248,0.10)',
-              maxWidth: 900, // increased maxWidth
-              width: '100%', // ensure it stretches
+              maxWidth: 900,
+              width: '100%',
               animation: 'fadeInUpAdminStats 1.1s cubic-bezier(.39,.575,.56,1.000) 0.5s both',
+              flexWrap: 'wrap',
             }}>
               {stats.map((stat, i) => (
                 <div key={stat.label} style={{
@@ -240,16 +330,18 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
           </header>
           <main style={{
             width: '100%',
-            maxWidth: 1300, // increased from 1000
+            maxWidth: 1300,
             margin: '0 auto',
-            padding: '4rem 3rem', // increased padding
+            padding: '4rem 3rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             zIndex: 1,
+            overflowX: 'auto',
+            boxSizing: 'border-box',
           }}>
             <section style={{ width: '100%' }}>
-              <h2 style={{ color: '#38bdf8', fontSize: '1.4rem', fontWeight: 700, marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '-0.5px', animation: 'glow 2s ease-in-out infinite alternate 1s' }}>
+              <h2 style={{ color: '#38bdf8', fontSize: '1.4rem', fontWeight: 700, marginBottom: '2.5rem', textAlign: 'center', letterSpacing: '-0.5px', animation: 'glow 2s ease-in-out infinite alternate 1s', wordWrap: 'break-word' }}>
                 Pending Signup Requests
               </h2>
               {pendingSignups.length === 0 ? (
@@ -344,6 +436,10 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
           0%, 100% { transform: scale(1); opacity: 0.8; }
           50% { transform: scale(1.1); opacity: 1; }
         }
+        @keyframes dropdownFadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .bg-blob {
           filter: blur(60px);
           opacity: 0.13;
@@ -382,102 +478,280 @@ function AdminDashboard({ users, pendingSignups, rejectedUsers, onApprove, onRej
           }
         }
         @media (max-width: 900px) {
-          .admin-dashboard-glass {
+          /* Mobile responsive stats bar */
+          header > div[style*='display: flex'] {
+            flex-direction: column !important;
+            gap: 0.8rem !important;
+            padding: 0.8rem 0.2rem !important;
             max-width: 100vw !important;
-            padding: 0.7rem 0.2rem !important;
-            border-radius: 1.2rem !important;
+            align-items: center !important;
           }
-          nav, header, main, section {
-            padding-left: 0.2rem !important;
-            padding-right: 0.2rem !important;
-          }
-          .admin-navbar-logo {
+          header > div[style*='display: flex'] > div {
+            min-width: 120px !important;
+            padding: 0.8rem 1rem !important;
             font-size: 1rem !important;
+            width: 100% !important;
+            max-width: 280px !important;
           }
-          h1 {
+          header > div[style*='display: flex'] > div > span:first-child {
+            font-size: 1.2rem !important;
+          }
+          header > div[style*='display: flex'] > div > span:nth-child(2) {
             font-size: 1.1rem !important;
           }
-          .stats-bar {
-            flex-direction: column !important;
-            gap: 0.7rem !important;
-            padding: 0.7rem 0.2rem !important;
+          header > div[style*='display: flex'] > div > span:last-child {
+            font-size: 0.9rem !important;
           }
-          .responsive-admin-logo {
-            font-size: 0.95rem !important;
-            gap: 0.4rem !important;
+          /* Mobile responsive navbar */
+          nav {
+            padding: 0.5rem 0.2rem !important;
+            min-height: 35px !important;
           }
-          .responsive-admin-logo .admin-navbar-logoicon {
-            width: 22px !important;
-            height: 22px !important;
-            margin-right: 7px !important;
+          .admin-navbar-links {
+            gap: 0.5rem !important;
+            font-size: 0.85rem !important;
+            margin-right: 0.5rem !important;
           }
-          .responsive-back-btn {
-            width: 32px !important;
-            height: 32px !important;
-            left: 10px !important;
-            top: 12px !important;
+          .admin-navbar-logout {
+            padding: 0.3rem 0.7rem !important;
+            font-size: 0.85rem !important;
           }
-          .responsive-back-icon {
-            width: 16px !important;
-            height: 16px !important;
+          /* Hamburger menu for mobile */
+          .admin-hamburger {
+            display: block !important;
+          }
+          .admin-navbar-links {
+            display: none !important;
+          }
+          .admin-navbar-logout {
+            display: none !important;
+          }
+          .admin-mobile-menu {
+            display: none !important;
+          }
+          .admin-mobile-menu.open {
+            display: flex !important;
+            animation: dropdownFadeIn 0.25s cubic-bezier(.39,.575,.56,1.000);
+          }
+          .admin-mobile-link:hover {
+            background: rgba(56,189,248,0.10) !important;
+          }
+          .admin-mobile-logout:hover {
+            background: linear-gradient(90deg, #38bdf8 0%, #22d3ee 100%) !important;
+            transform: translateY(-2px) scale(1.04) !important;
+          }
+          /* Mobile responsive header */
+          header {
+            padding: 0.7rem 0 0.5rem 0 !important;
+            margin-bottom: 0.7rem !important;
+          }
+          header h1 {
+            font-size: 1rem !important;
+            margin-bottom: 0.2rem !important;
+          }
+          header p {
+            font-size: 0.8rem !important;
+            margin-top: 0.2rem !important;
+          }
+          /* Mobile responsive main content */
+          main {
+            padding: 1rem 0.2rem !important;
+          }
+          main h2 {
+            font-size: 1.1rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          /* Mobile responsive table */
+          table {
+            font-size: 0.85rem !important;
+            min-width: 300px !important;
+          }
+          table th, table td {
+            padding: 0.5rem 0.3rem !important;
+            font-size: 0.8rem !important;
+          }
+          table th {
+            font-size: 0.85rem !important;
+          }
+          /* Mobile responsive buttons */
+          button {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            margin-right: 0.3rem !important;
           }
         }
         @media (max-width: 700px) {
-          .admin-dashboard-glass {
-            padding: 0.5rem 0.05rem !important;
-            border-radius: 0.7rem !important;
-          }
-          nav, header, main, section {
-            padding-left: 0.05rem !important;
-            padding-right: 0.05rem !important;
-          }
-          .admin-navbar-logo {
-            font-size: 0.85rem !important;
-          }
-          h1 {
-            font-size: 0.9rem !important;
-          }
-          .stats-bar {
+          /* Enhanced mobile responsive stats bar */
+          header > div[style*='display: flex'] {
             flex-direction: column !important;
-            gap: 0.5rem !important;
-            padding: 0.5rem 0.05rem !important;
+            gap: 0.6rem !important;
+            padding: 0.6rem 0.1rem !important;
+            align-items: center !important;
           }
-          .responsive-admin-logo {
+          header > div[style*='display: flex'] > div {
+            min-width: 100px !important;
+            padding: 0.6rem 0.8rem !important;
+            font-size: 0.9rem !important;
+            width: 100% !important;
+            max-width: 250px !important;
+          }
+          /* Enhanced hamburger menu for mobile */
+          .admin-hamburger {
+            display: block !important;
+            padding: 0.3rem !important;
+          }
+          .admin-hamburger svg {
+            width: 20px !important;
+            height: 20px !important;
+          }
+          header > div[style*='display: flex'] > div > span:first-child {
+            font-size: 1.1rem !important;
+          }
+          header > div[style*='display: flex'] > div > span:nth-child(2) {
+            font-size: 1rem !important;
+          }
+          header > div[style*='display: flex'] > div > span:last-child {
             font-size: 0.8rem !important;
-            gap: 0.2rem !important;
           }
-          .responsive-admin-logo .admin-navbar-logoicon {
-            width: 16px !important;
-            height: 16px !important;
-            margin-right: 4px !important;
+          /* Enhanced mobile responsive navbar */
+          nav {
+            padding: 0.3rem 0.1rem !important;
+            min-height: 30px !important;
           }
-          .responsive-back-btn {
-            width: 24px !important;
-            height: 24px !important;
-            left: 4px !important;
-            top: 6px !important;
+          .admin-navbar-links {
+            gap: 0.3rem !important;
+            font-size: 0.75rem !important;
+            margin-right: 0.3rem !important;
           }
-          .responsive-back-icon {
-            width: 12px !important;
-            height: 12px !important;
+          .admin-navbar-logout {
+            padding: 0.2rem 0.5rem !important;
+            font-size: 0.75rem !important;
+          }
+          /* Enhanced mobile responsive header */
+          header {
+            padding: 0.5rem 0 0.3rem 0 !important;
+            margin-bottom: 0.5rem !important;
+          }
+          header h1 {
+            font-size: 0.9rem !important;
+            margin-bottom: 0.1rem !important;
+          }
+          header p {
+            font-size: 0.7rem !important;
+            margin-top: 0.1rem !important;
+          }
+          /* Enhanced mobile responsive main content */
+          main {
+            padding: 0.5rem 0.1rem !important;
+          }
+          main h2 {
+            font-size: 1rem !important;
+            margin-bottom: 1rem !important;
+          }
+          /* Enhanced mobile responsive table */
+          table {
+            font-size: 0.75rem !important;
+            min-width: 250px !important;
+          }
+          table th, table td {
+            padding: 0.3rem 0.2rem !important;
+            font-size: 0.7rem !important;
+          }
+          table th {
+            font-size: 0.75rem !important;
+          }
+          /* Enhanced mobile responsive buttons */
+          button {
+            padding: 0.2rem 0.4rem !important;
+            font-size: 0.65rem !important;
+            margin-right: 0.2rem !important;
           }
         }
         @media (max-width: 500px) {
-          .admin-dashboard-glass {
-            padding: 0.2rem 0.01rem !important;
-            border-radius: 0.4rem !important;
+          /* Ultra mobile responsive stats bar */
+          header > div[style*='display: flex'] {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+            padding: 0.5rem 0.05rem !important;
+            align-items: center !important;
           }
-          h1 {
+          header > div[style*='display: flex'] > div {
+            min-width: 80px !important;
+            padding: 0.5rem 0.6rem !important;
             font-size: 0.8rem !important;
+            width: 100% !important;
+            max-width: 220px !important;
           }
-          .responsive-admin-logo {
+          /* Ultra mobile hamburger menu */
+          .admin-hamburger {
+            display: block !important;
+            padding: 0.2rem !important;
+          }
+          .admin-hamburger svg {
+            width: 18px !important;
+            height: 18px !important;
+          }
+          header > div[style*='display: flex'] > div > span:first-child {
+            font-size: 1rem !important;
+          }
+          header > div[style*='display: flex'] > div > span:nth-child(2) {
+            font-size: 0.9rem !important;
+          }
+          header > div[style*='display: flex'] > div > span:last-child {
+            font-size: 0.7rem !important;
+          }
+          /* Ultra mobile responsive navbar */
+          nav {
+            padding: 0.2rem 0.05rem !important;
+            min-height: 25px !important;
+          }
+          .admin-navbar-links {
+            gap: 0.2rem !important;
             font-size: 0.65rem !important;
-            gap: 0.1rem !important;
+            margin-right: 0.2rem !important;
           }
-          .responsive-admin-logo .admin-navbar-logoicon {
-            width: 12px !important;
-            height: 12px !important;
-            margin-right: 2px !important;
+          .admin-navbar-logout {
+            padding: 0.15rem 0.4rem !important;
+            font-size: 0.65rem !important;
+          }
+          /* Ultra mobile responsive header */
+          header {
+            padding: 0.3rem 0 0.2rem 0 !important;
+            margin-bottom: 0.3rem !important;
+          }
+          header h1 {
+            font-size: 0.8rem !important;
+            margin-bottom: 0.05rem !important;
+          }
+          header p {
+            font-size: 0.6rem !important;
+            margin-top: 0.05rem !important;
+          }
+          /* Ultra mobile responsive main content */
+          main {
+            padding: 0.3rem 0.05rem !important;
+          }
+          main h2 {
+            font-size: 0.9rem !important;
+            margin-bottom: 0.7rem !important;
+          }
+          /* Ultra mobile responsive table */
+          table {
+            font-size: 0.65rem !important;
+            min-width: 200px !important;
+          }
+          table th, table td {
+            padding: 0.2rem 0.1rem !important;
+            font-size: 0.6rem !important;
+          }
+          table th {
+            font-size: 0.65rem !important;
+          }
+          /* Ultra mobile responsive buttons */
+          button {
+            padding: 0.15rem 0.3rem !important;
+            font-size: 0.55rem !important;
+            margin-right: 0.15rem !important;
           }
         }
       `}</style>

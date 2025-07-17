@@ -410,6 +410,38 @@ function StudentDashboard({ onBack, username }) {
           .student-dashboard-table-wrapper {
             padding: 0 0.2rem !important;
           }
+          /* Mobile responsive header */
+          header {
+            padding: 2rem 0 1.5rem 0 !important;
+            margin-bottom: 1.5rem !important;
+          }
+          /* Mobile responsive main content */
+          main {
+            padding: 1.5rem 0.5rem 1rem 0.5rem !important;
+          }
+          /* Mobile responsive table */
+          table {
+            font-size: 0.9rem !important;
+            min-width: 300px !important;
+          }
+          table th, table td {
+            padding: 0.8rem 0.5rem !important;
+            font-size: 0.85rem !important;
+          }
+          table th {
+            font-size: 0.9rem !important;
+          }
+          /* Mobile responsive buttons */
+          .student-dashboard-download-btn {
+            padding: 0.8rem 5.5rem !important;
+            font-size: 0.9rem !important;
+            min-width: 180px !important;
+          }
+          /* Mobile responsive info banner */
+          .student-dashboard-info-banner {
+            font-size: 0.7rem !important;
+            padding: 0.15rem 0.4rem !important;
+          }
         }
         @media (max-width: 600px) {
           .student-dashboard-main-card {
@@ -451,11 +483,88 @@ function StudentDashboard({ onBack, username }) {
           .student-dashboard-table-wrapper {
             padding: 0 0.05rem !important;
           }
+          /* Enhanced mobile responsive header */
+          header {
+            padding: 1.5rem 0 1rem 0 !important;
+            margin-bottom: 1rem !important;
+          }
+          /* Enhanced mobile responsive main content */
+          main {
+            padding: 1rem 0.2rem 0.8rem 0.2rem !important;
+          }
+          /* Enhanced mobile responsive table */
+          table {
+            font-size: 0.8rem !important;
+            min-width: 250px !important;
+          }
+          table th, table td {
+            padding: 0.6rem 0.3rem !important;
+            font-size: 0.75rem !important;
+          }
+          table th {
+            font-size: 0.8rem !important;
+          }
+          /* Enhanced mobile responsive buttons */
           .student-dashboard-download-btn {
-            width: 100% !important;
-            font-size: 1rem !important;
-            padding: 1rem 0 !important;
-            min-width: 0 !important;
+            padding: 0.6rem 1.2rem !important;
+            font-size: 0.8rem !important;
+            min-width: 160px !important;
+          }
+          /* Enhanced mobile responsive info banner */
+          .student-dashboard-info-banner {
+            font-size: 0.65rem !important;
+            padding: 0.1rem 0.3rem !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .student-dashboard-main-card {
+            padding: 0.3rem 0.05rem 0.3rem 0.05rem !important;
+            border-radius: 8px !important;
+          }
+          .student-dashboard-heading {
+            font-size: 0.9rem !important;
+          }
+          .student-dashboard-subheading {
+            font-size: 0.65rem !important;
+            padding: 0.15em 0.3em !important;
+          }
+          .student-back-btn {
+            left: 4px !important;
+            top: 4px !important;
+            width: 28px !important;
+            height: 28px !important;
+          }
+          /* Ultra mobile responsive header */
+          header {
+            padding: 1rem 0 0.8rem 0 !important;
+            margin-bottom: 0.8rem !important;
+          }
+          /* Ultra mobile responsive main content */
+          main {
+            padding: 0.8rem 0.1rem 0.6rem 0.1rem !important;
+          }
+          /* Ultra mobile responsive table */
+          table {
+            font-size: 0.7rem !important;
+            min-width: 200px !important;
+          }
+          table th, table td {
+            padding: 0.4rem 0.2rem !important;
+            font-size: 0.65rem !important;
+          }
+          table th {
+            font-size: 0.7rem !important;
+          }
+          /* Ultra mobile responsive buttons */
+          .student-dashboard-download-btn {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.7rem !important;
+            min-width: 140px !important;
+          }
+          /* Ultra mobile responsive info banner */
+          .student-dashboard-info-banner {
+            font-size: 0.6rem !important;
+            padding: 0.08rem 0.2rem !important;
           }
         }
       `}</style>

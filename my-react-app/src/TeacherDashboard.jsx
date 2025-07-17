@@ -174,7 +174,7 @@ function TeacherDashboard({ onBack, teacherUser }) {
             lineHeight: 1.2,
           }}
         >
-          Welcome, Professor! Manage your classes, schedule, and resources below.
+          Download conflict free classes, schedule, and resources below.
         </div>
       </header>
       <main style={{
@@ -187,6 +187,7 @@ function TeacherDashboard({ onBack, teacherUser }) {
         alignItems: 'center',
         zIndex: 1,
         gap: '1.2rem', // reduced
+        boxSizing: 'border-box',
       }}>
         {/* Profile Card */}
         {/* Removed profile card as per user request */}
@@ -351,88 +352,328 @@ function TeacherDashboard({ onBack, teacherUser }) {
           box-shadow: 0 8px 32px rgba(34,211,238,0.13);
           transform: translateY(-2px) scale(1.04);
         }
-        /* Responsive styles */
-        @media (max-width: 900px) {
-          main {
-            padding: 1.1rem 0.2rem !important;
-            gap: 0.7rem !important;
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+          /* Header adjustments */
+          header {
+            padding: 0.8rem 0 0.4rem 0 !important;
+            margin-bottom: 2rem !important;
           }
-          section[style*='max-width: 900px'],
-          section[style*='max-width: 800px'],
-          section[style*='max-width: 700px'] {
-            max-width: 100vw !important;
-            padding: 0 0.2rem !important;
+          
+          /* Back button adjustments */
+          header button {
+            top: 14px !important;
+            left: 14px !important;
+            width: 32px !important;
+            height: 32px !important;
           }
+          
+          /* Heading adjustments */
           .teacher-dashboard-heading {
             font-size: 1rem !important;
+            margin: 0 3rem !important;
           }
-        }
-        @media (max-width: 700px) {
-          header {
-            padding: 0.7rem 0 0.4rem 0 !important;
-          }
-          main {
-            padding: 0.5rem 0.1rem !important;
-            gap: 0.5rem !important;
-          }
-          section[style*='max-width: 900px'],
-          section[style*='max-width: 800px'],
-          section[style*='max-width: 700px'] {
-            max-width: 100vw !important;
-            padding: 0 0.1rem !important;
-          }
-          .teacher-dashboard-heading {
-            font-size: 0.92rem !important;
-          }
+          
           .teacher-dashboard-subheading {
-            font-size: 0.82rem !important;
+            font-size: 0.8rem !important;
+            margin: 0.5rem 2rem 0.3rem 2rem !important;
           }
-          .timetable-table th, .timetable-table td {
-            padding: 0.5rem 0.3rem !important;
-            font-size: 0.92rem !important;
+          
+          /* Main content adjustments */
+          main {
+            padding: 1.5rem 1rem 1.5rem 3rem !important;
+            gap: 2rem !important;
+            margin-right: 1rem !important;
+            border-right: 2px solid rgba(34,211,238,0.2) !important;
+          }
+          
+          /* Section adjustments */
+          section {
+            margin-bottom: 2rem !important;
+          }
+          
+          /* Info banner adjustments */
+          div[style*='background: rgba(34,211,238,0.10)'] {
+            padding: 0.5rem 0.8rem !important;
+            font-size: 0.7rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          
+          /* Main card adjustments */
+          div[style*='background: rgba(35,39,47,0.82)'] {
+            padding: 1.5rem 1rem !important;
+            border-radius: 16px !important;
+            min-height: 140px !important;
+            margin: 0 1rem !important;
+          }
+          
+          /* Welcome message adjustments */
+          div[style*='font-size: 1.1rem'][style*='color: #38bdf8'] {
+            font-size: 0.9rem !important;
+            padding: 0.3em 1em !important;
+            margin-bottom: 1rem !important;
+          }
+          
+          /* Table heading adjustments */
+          h2[style*='color: #22d3ee'] {
+            font-size: 1rem !important;
+            margin-bottom: 1rem !important;
+          }
+          
+          /* Table adjustments */
+          table {
+            font-size: 0.85rem !important;
+            border-radius: 8px !important;
+            margin: 0 0.5rem !important;
+          }
+          
+          th, td {
+            padding: 0.6rem 0.7rem !important;
+            font-size: 0.85rem !important;
+          }
+          
+          /* Download button adjustments */
+          button[style*='background: linear-gradient(90deg, #22d3ee'] {
+            padding: 0.6rem 1.2rem !important;
+            font-size: 0.85rem !important;
+            border-radius: 8px !important;
+            margin-top: 1rem !important;
+          }
+          
+          /* Decorative blobs adjustments */
+          svg[style*='position: absolute'] {
+            width: 300px !important;
+            height: 300px !important;
           }
         }
-        @media (max-width: 500px) {
+        
+        @media (max-width: 480px) {
+          /* Header adjustments */
           header {
-            padding: 0.3rem 0 0.2rem 0 !important;
+            padding: 0.7rem 0 0.3rem 0 !important;
+            margin-bottom: 1.5rem !important;
           }
+          
+          /* Back button adjustments */
+          header button {
+            top: 12px !important;
+            left: 12px !important;
+            width: 30px !important;
+            height: 30px !important;
+          }
+          
+          /* Heading adjustments */
           .teacher-dashboard-heading {
-            font-size: 0.82rem !important;
+            font-size: 0.9rem !important;
+            margin: 0 2.5rem !important;
           }
+          
+          .teacher-dashboard-subheading {
+            font-size: 0.75rem !important;
+            margin: 0.4rem 1.8rem 0.2rem 1.8rem !important;
+          }
+          
+          /* Main content adjustments */
+          main {
+            padding: 1.2rem 0.8rem 1.2rem 2.5rem !important;
+            gap: 1.5rem !important;
+            margin-right: 0.8rem !important;
+            border-right: 2px solid rgba(34,211,238,0.2) !important;
+          }
+          
+          /* Info banner adjustments */
+          div[style*='background: rgba(34,211,238,0.10)'] {
+            padding: 0.4rem 0.7rem !important;
+            font-size: 0.65rem !important;
+            margin-bottom: 1.2rem !important;
+          }
+          
+          /* Main card adjustments */
+          div[style*='background: rgba(35,39,47,0.82)'] {
+            padding: 1.2rem 0.8rem !important;
+            border-radius: 12px !important;
+            min-height: 120px !important;
+            margin: 0 0.8rem !important;
+          }
+          
+          /* Welcome message adjustments */
+          div[style*='font-size: 1.1rem'][style*='color: #38bdf8'] {
+            font-size: 0.8rem !important;
+            padding: 0.25em 0.8em !important;
+            margin-bottom: 0.8rem !important;
+          }
+          
+          /* Table heading adjustments */
+          h2[style*='color: #22d3ee'] {
+            font-size: 0.9rem !important;
+            margin-bottom: 0.8rem !important;
+          }
+          
+          /* Table adjustments */
+          table {
+            font-size: 0.75rem !important;
+            border-radius: 6px !important;
+            margin: 0 0.4rem !important;
+          }
+          
+          th, td {
+            padding: 0.5rem 0.6rem !important;
+            font-size: 0.75rem !important;
+          }
+          
+          /* Download button adjustments */
+          button[style*='background: linear-gradient(90deg, #22d3ee'] {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.8rem !important;
+            border-radius: 6px !important;
+            margin-top: 0.8rem !important;
+          }
+          
+          /* Decorative blobs adjustments */
+          svg[style*='position: absolute'] {
+            width: 250px !important;
+            height: 250px !important;
+          }
+        }
+        
+        @media (max-width: 360px) {
+          /* Header adjustments */
+          header {
+            padding: 0.6rem 0 0.3rem 0 !important;
+            margin-bottom: 1.2rem !important;
+          }
+          
+          /* Back button adjustments */
+          header button {
+            top: 10px !important;
+            left: 10px !important;
+            width: 28px !important;
+            height: 28px !important;
+          }
+          
+          /* Heading adjustments */
+          .teacher-dashboard-heading {
+            font-size: 0.8rem !important;
+            margin: 0 2rem !important;
+          }
+          
           .teacher-dashboard-subheading {
             font-size: 0.7rem !important;
+            margin: 0.3rem 1.5rem 0.2rem 1.5rem !important;
           }
+          
+          /* Main content adjustments */
           main {
-            padding: 0.2rem 0.05rem !important;
+            padding: 1rem 0.6rem 1rem 2rem !important;
+            gap: 1.2rem !important;
+            margin-right: 0.6rem !important;
+            border-right: 2px solid rgba(34,211,238,0.2) !important;
           }
-          section[style*='max-width: 900px'],
-          section[style*='max-width: 800px'],
-          section[style*='max-width: 700px'] {
-            padding: 0 0.05rem !important;
+          
+          /* Info banner adjustments */
+          div[style*='background: rgba(34,211,238,0.10)'] {
+            padding: 0.3rem 0.6rem !important;
+            font-size: 0.6rem !important;
+            margin-bottom: 1rem !important;
           }
-          .timetable-table th, .timetable-table td {
-            padding: 0.32rem 0.15rem !important;
+          
+          /* Main card adjustments */
+          div[style*='background: rgba(35,39,47,0.82)'] {
+            padding: 1rem 0.6rem !important;
+            border-radius: 10px !important;
+            min-height: 100px !important;
+            margin: 0 0.6rem !important;
+          }
+          
+          /* Welcome message adjustments */
+          div[style*='font-size: 1.1rem'][style*='color: #38bdf8'] {
+            font-size: 0.75rem !important;
+            padding: 0.2em 0.6em !important;
+            margin-bottom: 0.6rem !important;
+          }
+          
+          /* Table heading adjustments */
+          h2[style*='color: #22d3ee'] {
             font-size: 0.8rem !important;
+            margin-bottom: 0.6rem !important;
           }
-          /* Stack back button and heading vertically */
-          header > div {
-            flex-direction: column !important;
-            gap: 0.2rem !important;
+          
+          /* Table adjustments */
+          table {
+            font-size: 0.7rem !important;
+            border-radius: 4px !important;
+            margin: 0 0.3rem !important;
           }
-          header button {
-            margin-bottom: 0.2rem !important;
-            margin-right: 0 !important;
+          
+          th, td {
+            padding: 0.4rem 0.5rem !important;
+            font-size: 0.7rem !important;
+          }
+          
+          /* Download button adjustments */
+          button[style*='background: linear-gradient(90deg, #22d3ee'] {
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.75rem !important;
+            border-radius: 4px !important;
+            margin-top: 0.6rem !important;
+          }
+          
+          /* Decorative blobs adjustments */
+          svg[style*='position: absolute'] {
+            width: 200px !important;
+            height: 200px !important;
           }
         }
+        
         /* Ensure table is scrollable on mobile */
         section[style*='max-width: 800px'] > div[style*='background'] {
           width: 100%;
           min-width: 0;
           overflow-x: auto;
         }
+        
         table {
           width: 100%;
-          min-width: 400px;
+          min-width: 300px;
+        }
+        
+        /* Ensure right margin and border are visible on mobile */
+        @media (max-width: 768px) {
+          main {
+            box-sizing: border-box !important;
+            width: calc(100% - 2rem) !important;
+            margin-left: 1rem !important;
+            margin-right: 1rem !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          main {
+            width: calc(100% - 1.6rem) !important;
+            margin-left: 0.8rem !important;
+            margin-right: 0.8rem !important;
+          }
+        }
+        
+        @media (max-width: 360px) {
+          main {
+            width: calc(100% - 1.2rem) !important;
+            margin-left: 0.6rem !important;
+            margin-right: 0.6rem !important;
+          }
+        }
+        
+        /* Touch-friendly button interactions */
+        @media (max-width: 768px) {
+          button {
+            min-height: 44px !important;
+            min-width: 44px !important;
+          }
+          
+          button:active {
+            transform: scale(0.95) !important;
+          }
         }
       `}</style>
     </div>

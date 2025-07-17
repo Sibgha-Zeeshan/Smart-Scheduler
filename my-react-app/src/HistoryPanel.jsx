@@ -67,11 +67,11 @@ function HistoryPanel({ accepted }) {
       {/* Removed the soft gradient overlay that caused partition */}
       <div className="history-glass-card" style={{
         width: '98%',
-        maxWidth: 800, // moderately compact
-        borderRadius: 16, // moderately compact
+        maxWidth: 800,
+        borderRadius: 16,
         background: 'rgba(30,41,59,0.85)',
         boxShadow: '0 12px 48px #22d3ee33, 0 2px 12px #22d3ee22',
-        padding: '1.7rem 1rem', // moderately compact
+        padding: '1.7rem 1rem',
         zIndex: 2,
         overflowX: 'auto',
         border: '2.5px solid',
@@ -80,12 +80,14 @@ function HistoryPanel({ accepted }) {
         backdropFilter: 'blur(18px)',
         marginTop: '2.5rem',
         marginBottom: '2.5rem',
+        boxSizing: 'border-box',
       }}>
         <h2 style={{ fontSize: '1.3rem', color: '#22d3ee', fontWeight: 800, marginBottom: '1.1rem', letterSpacing: '-1px', zIndex: 2, display: 'flex', alignItems: 'center', gap: 8, textShadow: '0 2px 8px #22d3ee22', animation: 'fadeInUp 1.2s cubic-bezier(.39,.575,.56,1.000) both' }}>
           <CheckCircle size={18} color="#38bdf8" style={{ verticalAlign: 'middle' }} />
           Accepted Users
         </h2>
-        <table className="history-table-modern" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: 'none', borderRadius: 12, overflow: 'hidden', fontSize: '1rem', animation: 'fadeInUp 1.2s cubic-bezier(.39,.575,.56,1.000) 0.2s both' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="history-table-modern" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, background: 'none', borderRadius: 12, overflow: 'hidden', fontSize: '1rem', animation: 'fadeInUp 1.2s cubic-bezier(.39,.575,.56,1.000) 0.2s both' }}>
           <thead>
             <tr style={{ color: '#38bdf8', fontWeight: 700, fontSize: '1.05rem', background: 'rgba(34,211,238,0.10)' }}>
               <th style={{ padding: '0.7rem 0.5rem', textAlign: 'left', borderBottom: '1.5px solid #38bdf855', letterSpacing: '-0.5px' }}>Username</th>
@@ -145,6 +147,7 @@ function HistoryPanel({ accepted }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       <style>{`
         @keyframes float {
@@ -221,6 +224,191 @@ function HistoryPanel({ accepted }) {
         @keyframes fadeInUpRow {
           from { opacity: 0; transform: translateY(24px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        /* Mobile responsive styles */
+        @media (max-width: 900px) {
+          .history-glass-card {
+            width: 95% !important;
+            max-width: 100vw !important;
+            padding: 1.2rem 0.5rem !important;
+            margin-top: 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+            border-radius: 12px !important;
+          }
+          .history-glass-card h2 {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.8rem !important;
+          }
+          .history-table-modern {
+            font-size: 0.9rem !important;
+            min-width: 400px !important;
+          }
+          .history-table-modern th,
+          .history-table-modern td {
+            padding: 0.5rem 0.3rem !important;
+            font-size: 0.85rem !important;
+          }
+          .history-table-modern th {
+            font-size: 0.9rem !important;
+          }
+          .history-btn-modern {
+            padding: 0.3rem 0.7rem !important;
+            font-size: 0.85rem !important;
+          }
+          .history-icon-btn-modern {
+            padding: 0.15rem !important;
+          }
+          .history-icon-btn-modern svg {
+            width: 14px !important;
+            height: 14px !important;
+          }
+          .status-badge {
+            font-size: 0.8rem !important;
+            padding: 0.15em 0.6em !important;
+          }
+          /* Mobile responsive table layout */
+          .history-table-modern th:nth-child(1),
+          .history-table-modern td:nth-child(1) {
+            min-width: 80px !important;
+            max-width: 100px !important;
+          }
+          .history-table-modern th:nth-child(2),
+          .history-table-modern td:nth-child(2) {
+            min-width: 120px !important;
+            max-width: 150px !important;
+          }
+          .history-table-modern th:nth-child(3),
+          .history-table-modern td:nth-child(3) {
+            min-width: 60px !important;
+            max-width: 80px !important;
+          }
+          .history-table-modern th:nth-child(4),
+          .history-table-modern td:nth-child(4) {
+            min-width: 80px !important;
+            max-width: 100px !important;
+          }
+        }
+        @media (max-width: 700px) {
+          .history-glass-card {
+            width: 98% !important;
+            padding: 1rem 0.3rem !important;
+            margin-top: 1rem !important;
+            margin-bottom: 1rem !important;
+            border-radius: 10px !important;
+          }
+          .history-glass-card h2 {
+            font-size: 1rem !important;
+            margin-bottom: 0.6rem !important;
+          }
+          .history-table-modern {
+            font-size: 0.8rem !important;
+            min-width: 350px !important;
+          }
+          .history-table-modern th,
+          .history-table-modern td {
+            padding: 0.4rem 0.2rem !important;
+            font-size: 0.75rem !important;
+          }
+          .history-table-modern th {
+            font-size: 0.8rem !important;
+          }
+          .history-btn-modern {
+            padding: 0.25rem 0.6rem !important;
+            font-size: 0.75rem !important;
+          }
+          .history-icon-btn-modern {
+            padding: 0.1rem !important;
+          }
+          .history-icon-btn-modern svg {
+            width: 12px !important;
+            height: 12px !important;
+          }
+          .status-badge {
+            font-size: 0.7rem !important;
+            padding: 0.1em 0.5em !important;
+          }
+          /* Enhanced mobile responsive table layout */
+          .history-table-modern th:nth-child(1),
+          .history-table-modern td:nth-child(1) {
+            min-width: 70px !important;
+            max-width: 90px !important;
+          }
+          .history-table-modern th:nth-child(2),
+          .history-table-modern td:nth-child(2) {
+            min-width: 100px !important;
+            max-width: 130px !important;
+          }
+          .history-table-modern th:nth-child(3),
+          .history-table-modern td:nth-child(3) {
+            min-width: 50px !important;
+            max-width: 70px !important;
+          }
+          .history-table-modern th:nth-child(4),
+          .history-table-modern td:nth-child(4) {
+            min-width: 70px !important;
+            max-width: 90px !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .history-glass-card {
+            width: 99% !important;
+            padding: 0.8rem 0.2rem !important;
+            margin-top: 0.8rem !important;
+            margin-bottom: 0.8rem !important;
+            border-radius: 8px !important;
+          }
+          .history-glass-card h2 {
+            font-size: 0.9rem !important;
+            margin-bottom: 0.5rem !important;
+          }
+          .history-table-modern {
+            font-size: 0.7rem !important;
+            min-width: 300px !important;
+          }
+          .history-table-modern th,
+          .history-table-modern td {
+            padding: 0.3rem 0.15rem !important;
+            font-size: 0.65rem !important;
+          }
+          .history-table-modern th {
+            font-size: 0.7rem !important;
+          }
+          .history-btn-modern {
+            padding: 0.2rem 0.5rem !important;
+            font-size: 0.65rem !important;
+          }
+          .history-icon-btn-modern {
+            padding: 0.08rem !important;
+          }
+          .history-icon-btn-modern svg {
+            width: 10px !important;
+            height: 10px !important;
+          }
+          .status-badge {
+            font-size: 0.6rem !important;
+            padding: 0.08em 0.4em !important;
+          }
+          /* Ultra mobile responsive table layout */
+          .history-table-modern th:nth-child(1),
+          .history-table-modern td:nth-child(1) {
+            min-width: 60px !important;
+            max-width: 80px !important;
+          }
+          .history-table-modern th:nth-child(2),
+          .history-table-modern td:nth-child(2) {
+            min-width: 80px !important;
+            max-width: 110px !important;
+          }
+          .history-table-modern th:nth-child(3),
+          .history-table-modern td:nth-child(3) {
+            min-width: 40px !important;
+            max-width: 60px !important;
+          }
+          .history-table-modern th:nth-child(4),
+          .history-table-modern td:nth-child(4) {
+            min-width: 60px !important;
+            max-width: 80px !important;
+          }
         }
       `}</style>
     </div>

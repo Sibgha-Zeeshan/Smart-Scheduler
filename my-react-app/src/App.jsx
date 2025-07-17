@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, CheckCircle, Sparkles, Users, ShieldCheck, Clock } from "lucide-react";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [loggedInUser, setLoggedInUser] = useState(null);
   const [users, setUsers] = useState(initialUsers);
   const [pendingSignups, setPendingSignups] = useState([]);
   const [rejectedUsers, setRejectedUsers] = useState([]);
@@ -22,6 +23,22 @@ function App() {
   const [adminLogin, setAdminLogin] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
   const [signupError, setSignupError] = useState("");
+  const [navOpen, setNavOpen] = useState(false); // New state for mobile menu
+
+  // Prevent scroll when navOpen is true (mobile only)
+  useEffect(() => {
+    if (navOpen) {
+      document.body.classList.add('nav-open');
+      document.documentElement.classList.add('nav-open');
+    } else {
+      document.body.classList.remove('nav-open');
+      document.documentElement.classList.remove('nav-open');
+    }
+    return () => {
+      document.body.classList.remove('nav-open');
+      document.documentElement.classList.remove('nav-open');
+    };
+  }, [navOpen]);
 
   const handleLogin = ({ email, password, username }) => {
     setLoading(true);
@@ -31,6 +48,7 @@ function App() {
       if (username === 'umtadmin' && password === 'admin123') {
         setLoading(false);
         setUserRole('admin');
+        setLoggedInUser({ username: 'umtadmin', role: 'admin' });
         setShowLogin(false);
         return;
       }
@@ -60,6 +78,7 @@ function App() {
       }
       setLoading(false);
       setUserRole(user.role);
+      setLoggedInUser(user);
       setShowLogin(false);
     }, 1500);
   };
@@ -93,22 +112,50 @@ function App() {
 
   // Show dashboard if logged in
   if (userRole === "admin")
-    return <AdminDashboard users={users} pendingSignups={pendingSignups} rejectedUsers={rejectedUsers} onApprove={handleApprove} onReject={handleReject} onBack={() => setUserRole("")} />;
-  if (userRole === "teacher") return <TeacherDashboard onBack={() => setUserRole("")} />;
-  if (userRole === "student") return <StudentDashboard onBack={() => setUserRole("")} />;
+    return <AdminDashboard users={users} pendingSignups={pendingSignups} rejectedUsers={rejectedUsers} onApprove={handleApprove} onReject={handleReject} onBack={() => { setUserRole(""); setLoggedInUser(null); }} adminUser={loggedInUser} />;
+  if (userRole === "teacher") return <TeacherDashboard onBack={() => { setUserRole(""); setLoggedInUser(null); }} teacherUser={loggedInUser} />;
+  if (userRole === "student") return <StudentDashboard username={loggedInUser?.username} onBack={() => { setUserRole(""); setLoggedInUser(null); }} />;
 
   return (
     <>
       {/* Top Navigation Bar */}
-      <nav className="topbar glass-navbar" style={{ background: 'linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', animation: 'slideDown 0.8s ease-out' }}>
-        <div className="topbar-inner" style={{ justifyContent: 'space-between', paddingLeft: '4rem', paddingRight: '4rem' }}>
+      <nav className="topbar glass-navbar" style={{ background: 'linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', animation: 'slideDown 0.8s ease-out', position: 'relative' }}>
+        <div className="topbar-inner" style={{ justifyContent: 'space-between', paddingLeft: '4rem', paddingRight: '4rem', position: 'relative' }}>
           <div className="topbar-logo" style={{ justifyContent: 'flex-start', marginLeft: '-4rem', paddingLeft: 0, gap: '0.2rem', alignItems: 'center' }}>
             <span className="logo-text gradient-text" style={{ marginLeft: 0, background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontWeight: '700', animation: 'glow 2s ease-in-out infinite alternate' }}>Smart Scheduler</span>
           </div>
-          <div className="topbar-actions" style={{ justifyContent: 'flex-end' }}>
-            <button className="topbar-btn login-btn" style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#f1f5f9', transition: 'all 0.3s ease', animation: 'bounceIn 0.8s ease-out 0.2s both' }} onClick={() => { setShowLogin(true); setAdminLogin(false); }}>Login</button>
-            <button className="topbar-btn signup-btn" style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)', border: 'none', color: 'white', transition: 'all 0.3s ease', animation: 'bounceIn 0.8s ease-out 0.4s both' }} onClick={() => setShowSignup(true)}>Sign Up</button>
-            <button className="topbar-btn" style={{ background: 'rgba(34, 211, 238, 0.15)', border: '1px solid #22d3ee', color: '#22d3ee', marginLeft: '1rem', transition: 'all 0.3s ease', animation: 'bounceIn 0.8s ease-out 0.8s both' }} onClick={() => { setShowLogin(true); setAdminLogin(true); setAdminEmail('admin@umt.edu.pk'); }}>Login as Admin</button>
+          {/* Hamburger for mobile only */}
+          <button
+            className="hamburger"
+            aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={navOpen}
+            aria-controls="topbar-actions"
+            onClick={() => setNavOpen(v => !v)}
+            style={{
+              display: 'none', // will be overridden by CSS on mobile
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              marginLeft: 'auto',
+              zIndex: 120,
+            }}
+          >
+            <span style={{ display: 'block', width: 28, height: 28 }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="7" x2="21" y2="7" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="17" x2="21" y2="17" />
+              </svg>
+            </span>
+          </button>
+          <div
+            id="topbar-actions"
+            className={`topbar-actions${navOpen ? ' open' : ''}`}
+          >
+            <button className="topbar-btn login-btn" onClick={() => { setShowLogin(true); setAdminLogin(false); setNavOpen(false); }}>Login</button>
+            <button className="topbar-btn signup-btn" onClick={() => { setShowSignup(true); setNavOpen(false); }}>Sign Up</button>
+            <button className="topbar-btn" onClick={() => { setShowLogin(true); setAdminLogin(true); setAdminEmail('admin@umt.edu.pk'); setNavOpen(false); }}>Login as Admin</button>
           </div>
         </div>
       </nav>
@@ -726,6 +773,24 @@ function App() {
             flex-wrap: wrap !important;
             justify-content: center !important;
             gap: 0.5rem !important;
+          }
+          .hamburger {
+            display: block;
+          }
+          .topbar-actions.open {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(26,26,46,0.98);
+            box-shadow: 0 8px 24px rgba(16,24,40,0.18);
+            border-radius: 0 0 12px 12px;
+            z-index: 110;
+            min-width: 180px;
+            padding: 1rem 0.5rem;
+            gap: 0.5rem;
+            align-items: flex-end;
           }
         }
         @media (max-width: 700px) {
