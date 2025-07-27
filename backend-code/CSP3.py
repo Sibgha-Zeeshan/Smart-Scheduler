@@ -271,26 +271,34 @@ def count_faculty_assignments(timetable, faculty_id):
     return len(unique_courses)
 
 # Restore is_consistent function (no cache, original logic)
-def is_consistent(timetable, selected_times, room, faculty_id, section, course_type, conflicts, course_name, day):
+def is_consistent(timetable, selected_times, room, faculty_id, section, course_type, conflicts, course_name, day, relaxed=False):
     # Check room type constraints first (fastest check)
     if course_type == "Lab" and room["Room_Type"] != "Lab":
-        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lab Course Assigned to Non-Lab Room"})
+        reason = "Lab Course Assigned to Non-Lab Room"
+        conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": reason})
+        all_conflict_reasons[(course_name, section)].add(reason)
         return False
     if course_type != "Lab" and room["Room_Type"] != "Lecture":
-        conflicts.append({"CourseName": course_name, "Day": day, "Conflict": "Lecture Course Assigned to Lab Room"})
+        reason = "Lecture Course Assigned to Lab Room"
+        conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": reason})
+        all_conflict_reasons[(course_name, section)].add(reason)
         return False
 
     # Check faculty's processed courses (using direct lookup)
     faculty_member = faculty_df[faculty_df['Faculty_ID'] == faculty_id].iloc[0]
     course_id = courses_df[courses_df['Course_Name'] == course_name.rsplit('-', 1)[0]]['Course_ID'].iloc[0]
     if course_id not in faculty_member['Processed_Courses']:
-        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Course not in faculty's processed courses"})
+        reason = "Course not in faculty's processed courses"
+        conflicts.append({"Course_Name": course_name, "Section": section, "Day": day, "Reason": reason})
+        all_conflict_reasons[(course_name, section)].add(reason)
         return False
 
     # Check faculty course limits using direct count
     current_course_count = count_faculty_assignments(timetable, faculty_id)
     if current_course_count >= 3:
-        conflicts.append({"Course_Name": course_name, "Day": day, "Conflict": "Faculty already has 3 courses"})
+        reason = "Faculty already has 3 courses"
+        conflicts.append({"Course_Name": course_name, "Section": section, "Day": day, "Reason": reason})
+        all_conflict_reasons[(course_name, section)].add(reason)
         return False
 
     # Create time keys for checking conflicts
@@ -301,17 +309,77 @@ def is_consistent(timetable, selected_times, room, faculty_id, section, course_t
         if details['Room'] == room['Room_ID']:
             for t in details['Times']:
                 if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Room Conflict at {t['Start_Time']}"})
+                    conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": f"Room Conflict at {t['Start_Time']}"})
+                    all_conflict_reasons[(course_name, section)].add(f"Room Conflict at {t['Start_Time']}")
                     return False
         if details['FacultyID'] == faculty_id:
             for t in details['Times']:
                 if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Faculty Conflict at {t['Start_Time']}"})
+                    conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": f"Faculty Conflict at {t['Start_Time']}"})
+                    all_conflict_reasons[(course_name, section)].add(f"Faculty Conflict at {t['Start_Time']}")
                     return False
         if details['Section'] == section:
             for t in details['Times']:
                 if (t['Day'], t['Start_Time']) in selected_time_keys:
-                    conflicts.append({"CourseName": course_name, "Day": day, "Conflict": f"Section Conflict at {t['Start_Time']}"})
+                    conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": f"Section Conflict at {t['Start_Time']}"})
+                    all_conflict_reasons[(course_name, section)].add(f"Section Conflict at {t['Start_Time']}")
+                    return False
+    
+    # Faculty continuous window constraint (NEW)
+    if not relaxed:
+        faculty_day_times = []
+        for (_, _, d), details in timetable.items():
+            if details['FacultyID'] == faculty_id and d == day:
+                for t in details['Times']:
+                    faculty_day_times.append((t['Start_Time'], t['End_Time']))
+        for t in selected_times:
+            if t['Day'] == day:
+                faculty_day_times.append((t['Start_Time'], t['End_Time']))
+        if faculty_day_times:
+            def time_to_minutes(tstr):
+                tstr = tstr.strip().upper()
+                match = re.match(r'(\d+):(\d+)\s*([AP]M)', tstr)
+                if not match:
+                    return None
+                hour, minute, ampm = int(match.group(1)), int(match.group(2)), match.group(3)
+                if ampm == 'PM' and hour != 12:
+                    hour += 12
+                if ampm == 'AM' and hour == 12:
+                    hour = 0
+                return hour * 60 + minute
+            start_minutes = [time_to_minutes(s) for s, _ in faculty_day_times]
+            end_minutes = [time_to_minutes(e) for _, e in faculty_day_times]
+            earliest_start = min(start_minutes)
+            latest_end = max(end_minutes)
+            for s, e in faculty_day_times:
+                s_min = time_to_minutes(s)
+                e_min = time_to_minutes(e)
+                if s_min < earliest_start or e_min > latest_end:
+                    conflicts.append({"CourseName": course_name, "Section": section, "Day": day, "Reason": f"Faculty's classes on {day} must be within a continuous window starting from their first class ({s} to {e})"})
+                    all_conflict_reasons[(course_name, section)].add(f"Faculty's classes on {day} must be within a continuous window starting from their first class ({s} to {e})")
+                    return False
+    # Lecture fixed time across week constraint (NEW)
+    if course_type == "Lecture" and not relaxed:
+        assigned_times = []
+        for (c_name, sec, d), details in timetable.items():
+            if (
+                details['FacultyID'] == faculty_id and
+                details['Section'] == section and
+                details['CourseType'] == "Lecture"
+            ):
+                for t in details['Times']:
+                    assigned_times.append(t['Start_Time'])
+        if assigned_times:
+            required_time = assigned_times[0]
+            for t in selected_times:
+                if t['Start_Time'] != required_time:
+                    conflicts.append({
+                        "CourseName": course_name,
+                        "Section": section,
+                        "Day": day,
+                        "Reason": f"All lectures for this section and faculty must be at the same start time each week (expected {required_time}, got {t['Start_Time']})"
+                    })
+                    all_conflict_reasons[(course_name, section)].add(f"All lectures for this section and faculty must be at the same start time each week (expected {required_time}, got {t['Start_Time']})")
                     return False
     return True
 
@@ -374,7 +442,8 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
         if time.time() - start_time > MAX_TIME_PER_COURSE * (course_index + 1):
             print(f"\nSkipping complex course {course_id}-{section} and moving on.")
             conflicts.append({"CourseName": course['Course_Name'], "Section": section, 
-                            "Conflict": "Scheduling timeout - too complex"})
+                            "Reason": "Scheduling timeout - too complex"})
+            all_conflict_reasons[(course['Course_Name'], section)].add("Scheduling timeout - too complex")
             return backtrack(timetable, course_index + 1, conflicts, relaxed, pbar)
         assignments = []
         assigned_days = 0
@@ -403,7 +472,7 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
                 for room in suitable_rooms:
                     if is_consistent(
                         timetable, [slot], room, faculty_member['Faculty_ID'], section,
-                        requirements['type'], conflicts, course['Course_Name'], day_name
+                        requirements['type'], conflicts, course['Course_Name'], day_name, relaxed
                     ):
                         assignment = {
                             "CourseID": course_id,
@@ -441,6 +510,7 @@ def backtrack(timetable, course_index, conflicts, relaxed=False, pbar=None):
             "Section": section,
             "Reason": "Could not assign after all options (deadlock or over-constrained)"
         })
+        all_conflict_reasons[(course['Course_Name'], section)].add("Could not assign after all options (deadlock or over-constrained)")
         return backtrack(timetable, course_index + 1, conflicts, False, pbar)
 
 # Measure Execution Time
@@ -450,6 +520,9 @@ start_time = time.time()
 # Initialize timetable and conflicts
 timetable = {}
 conflicts = []
+
+# Track all reasons for each course/section
+all_conflict_reasons = defaultdict(set)
 
 # Add timeout and set maximum time for scheduling
 MAX_SCHEDULING_TIME = 300  # 5 minutes timeout
@@ -517,25 +590,9 @@ with tqdm(total=len(courses), desc="Generating timetable", unit="course") as pba
             timetable_data = sorted(timetable_data, key=lambda x: extract_section_number(x["Section"]))
             df = pd.DataFrame(timetable_data)
 
-            # Add summary of faculty course assignments with ratings
-            print("\nFaculty Course Assignment Summary:")
-            faculty_summary = defaultdict(list)
-            faculty_ratings = defaultdict(dict)
-            for data in timetable_data:
-                faculty_id = data["FacultyID"]
-                course_name = data["CourseName"].rsplit('-', 1)[0]  # Remove section
-                if course_name not in faculty_summary[faculty_id]:
-                    faculty_summary[faculty_id].append(course_name)
-                    faculty_ratings[faculty_id][course_name] = data["Rating"]
-            
-            for faculty_id, courses in faculty_summary.items():
-                faculty_name = faculty_df[faculty_df['Faculty_ID'] == faculty_id]['Faculty_Name'].iloc[0]
-                print(f"\nFaculty: {faculty_name} (ID: {faculty_id})")
-                for course in courses:
-                    rating = faculty_ratings[faculty_id][course]
-                    print(f"Course: {course} (Rating: {rating})")
-
-            # Update Excel output to include ratings
+            # Remove Faculty Course Assignment Summary and its printout
+            # (Delete the block that prints and writes the faculty summary)
+            # Update Excel output to exclude faculty summary
             print("\nSaving timetable to Excel...")
             timetable_output_path = os.path.join(output_folder, output_filename)
             with pd.ExcelWriter(timetable_output_path, engine="xlsxwriter") as writer:
@@ -567,29 +624,24 @@ with tqdm(total=len(courses), desc="Generating timetable", unit="course") as pba
                     
                     row += 2  # Add space before next section
 
-                # Update Faculty Summary Sheet to include ratings
-                summary_sheet = workbook.add_worksheet("Faculty Summary")
-                summary_sheet.write(0, 0, "Faculty ID", header_format)
-                summary_sheet.write(0, 1, "Faculty Name", header_format)
-                summary_sheet.write(0, 2, "Course", header_format)
-                summary_sheet.write(0, 3, "Rating", header_format)
-                
-                row = 1
-                for faculty_id, courses in faculty_summary.items():
-                    faculty_name = faculty_df[faculty_df['Faculty_ID'] == faculty_id]['Faculty_Name'].iloc[0]
-                    for course in courses:
-                        summary_sheet.write(row, 0, faculty_id)
-                        summary_sheet.write(row, 1, faculty_name)
-                        summary_sheet.write(row, 2, course)
-                        summary_sheet.write(row, 3, faculty_ratings[faculty_id][course])
-                        row += 1
-
             print(f"Timetable saved to {timetable_output_path}")
 
-            # Add unassigned courses sheet if there are any conflicts
-            if conflicts:
+            # Only show conflicts for courses that remain unassigned after all attempts
+            assigned_keys = set((course, section) for (course, section, _) in timetable.keys())
+            final_conflicts = []
+            for (cname, section), reasons in all_conflict_reasons.items():
+                if (cname, section) not in assigned_keys:
+                    final_conflicts.append({
+                        "CourseName": cname,
+                        "Section": section,
+                        "Reason": "; ".join(sorted(reasons))
+                    })
+            if final_conflicts:
                 print("Saving unassigned courses to Excel (sheet)...")
-                conflicts_df = pd.DataFrame(conflicts)
+                conflicts_df = pd.DataFrame(final_conflicts)
+                # Ensure 'Reason' column exists
+                if 'Reason' not in conflicts_df.columns:
+                    conflicts_df['Reason'] = ''
                 # Re-open the file in append mode using openpyxl
                 with pd.ExcelWriter(timetable_output_path, engine="openpyxl", mode="a") as writer:
                     conflicts_df.to_excel(writer, sheet_name="Unassigned Courses", index=False)
