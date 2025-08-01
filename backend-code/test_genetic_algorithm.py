@@ -12,86 +12,127 @@ from genetic_timetable_generator import GeneticTimetableGenerator
 import time # Added for timing tests
 
 def test_with_existing_data():
-    """Test the genetic algorithm with existing validated data"""
-    print("Testing Genetic Algorithm with existing data...")
+    """Test the genetic algorithm with existing data"""
+    print("🧬 Testing Genetic Algorithm with Existing Data")
+    print("=" * 50)
     
+    input_file = "f2025.xlsx"
+    
+    if not os.path.exists(input_file):
+        print(f"❌ Input file {input_file} not found")
+        return
+    
+    # Create generator with optimized parameters
     generator = GeneticTimetableGenerator(
-        input_file="f2025.xlsx",
-        population_size=50,
-        generations=100,
-        mutation_rate=0.05,
-        tournament_size=3,
-        timeout_minutes=2
-        # skip_soft_constraints is omitted (default False)
+        input_file=input_file,
+        population_size=75,      # Optimized for speed
+        generations=150,         # Optimized for speed
+        mutation_rate=0.05,      # Increased for faster convergence
+        tournament_size=3,       # Reduced for speed
+        timeout_minutes=2,       # Reduced for speed
+        skip_soft_constraints=False  # Always include soft constraints
     )
     
-    try:
-        generator.run("test_genetic_output.xlsx")
-        print("✓ Test completed successfully")
-    except Exception as e:
-        print(f"❌ Test failed: {e}")
+    # Run the algorithm
+    output_file = "genetic_timetable_test.xlsx"
+    generator.run(output_file)
+    
+    print(f"\n✅ Test completed! Check {output_file} for results")
 
 def test_with_different_parameters():
     """Test with different parameter combinations"""
-    print("Testing different parameter combinations...")
+    print("🧬 Testing Genetic Algorithm with Different Parameters")
+    print("=" * 50)
     
-    # All configs use skip_soft_constraints=False
+    input_file = "f2025.xlsx"
+    
+    if not os.path.exists(input_file):
+        print(f"❌ Input file {input_file} not found")
+        return
+    
+    # Test configurations
     configs = [
-        ("Fast", {
-            'population_size': 30,
-            'generations': 50,
-            'mutation_rate': 0.08,
-            'tournament_size': 2,
-            'timeout_minutes': 1
-        }),
-        ("Balanced", {
-            'population_size': 50,
-            'generations': 100,
-            'mutation_rate': 0.05,
-            'tournament_size': 3,
-            'timeout_minutes': 2
-        }),
-        ("Quality", {
-            'population_size': 75,
-            'generations': 150,
-            'mutation_rate': 0.03,
-            'tournament_size': 4,
-            'timeout_minutes': 3
-        })
+        {
+            "name": "Fast",
+            "population_size": 50,
+            "generations": 100,
+            "mutation_rate": 0.08,
+            "tournament_size": 2,
+            "timeout_minutes": 1
+        },
+        {
+            "name": "Balanced",
+            "population_size": 75,
+            "generations": 150,
+            "mutation_rate": 0.05,
+            "tournament_size": 3,
+            "timeout_minutes": 2
+        },
+        {
+            "name": "Quality",
+            "population_size": 100,
+            "generations": 200,
+            "mutation_rate": 0.03,
+            "tournament_size": 4,
+            "timeout_minutes": 3
+        }
     ]
     
-    for config_name, params in configs:
-        print(f"\nTesting {config_name} configuration...")
-        try:
-            generator = GeneticTimetableGenerator("f2025.xlsx", **params)
-            start_time = time.time()
-            generator.run(f"test_{config_name.lower()}_output.xlsx")
-            end_time = time.time()
-            print(f"✓ {config_name} test completed in {end_time - start_time:.2f} seconds")
-        except Exception as e:
-            print(f"❌ {config_name} test failed: {e}")
+    for config in configs:
+        print(f"\n🔧 Testing {config['name']} Configuration:")
+        print(f"Population: {config['population_size']}, Generations: {config['generations']}")
+        
+        generator = GeneticTimetableGenerator(
+            input_file=input_file,
+            population_size=config['population_size'],
+            generations=config['generations'],
+            mutation_rate=config['mutation_rate'],
+            tournament_size=config['tournament_size'],
+            timeout_minutes=config['timeout_minutes'],
+            skip_soft_constraints=False  # Always include soft constraints
+        )
+        
+        output_file = f"genetic_timetable_{config['name'].lower()}.xlsx"
+        generator.run(output_file)
+        
+        print(f"✅ {config['name']} test completed!")
 
 def compare_with_csp():
     """Compare genetic algorithm with CSP approach"""
-    print("Comparing Genetic Algorithm with CSP...")
+    print("🧬 Comparing Genetic Algorithm with CSP")
+    print("=" * 50)
+    
+    input_file = "f2025.xlsx"
+    
+    if not os.path.exists(input_file):
+        print(f"❌ Input file {input_file} not found")
+        return
+    
+    # Run genetic algorithm
+    print("\n🔬 Running Genetic Algorithm...")
+    start_time = time.time()
     
     generator = GeneticTimetableGenerator(
-        input_file="f2025.xlsx",
-        population_size=50,
-        generations=100,
+        input_file=input_file,
+        population_size=75,
+        generations=150,
         mutation_rate=0.05,
         tournament_size=3,
-        timeout_minutes=2
+        timeout_minutes=2,
+        skip_soft_constraints=False  # Always include soft constraints
     )
     
-    try:
-        start_time = time.time()
-        generator.run("genetic_comparison_output.xlsx")
-        genetic_time = time.time() - start_time
-        print(f"✓ Genetic Algorithm completed in {genetic_time:.2f} seconds")
-        print("Note: CSP comparison not yet implemented")
-    except Exception as e:
-        print(f"❌ Comparison failed: {e}")
+    generator.run("genetic_comparison.xlsx")
+    ga_time = time.time() - start_time
+    
+    print(f"\n📊 Genetic Algorithm Results:")
+    print(f"Time: {ga_time:.2f} seconds")
+    
+    # Note: CSP comparison would require running CSP3.py separately
+    print("\n💡 To compare with CSP:")
+    print("1. Run: python CSP3.py f2025.xlsx")
+    print("2. Compare the output files")
+    print("3. Check accuracy and constraint satisfaction")
 
 def main():
     """Main test function"""

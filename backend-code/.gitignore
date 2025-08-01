@@ -1,1 +1,7 @@
 __pycache__/ 
+
+output
+static
+docker-compose.yml
+.venv
+genetic_timetable_output_new.xlsx 

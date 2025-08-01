@@ -4,10 +4,11 @@ import numpy as np
 import random
 import time
 import os
+import re
+import ast
 from typing import List, Dict, Tuple, Any
 from dataclasses import dataclass
 from collections import defaultdict
-import re
 from tqdm import tqdm
 
 @dataclass
@@ -76,20 +77,55 @@ class GeneticTimetableGenerator:
         self.best_chromosome = None
         self.generation_history = []
         
+        # Conflict tracking (matching CSP3.py)
+        self.all_conflict_reasons = defaultdict(set)
+        
         # Constraint weights (reduced for faster computation)
         self.hard_constraint_weight = 50  # Reduced from 100
         self.soft_constraint_weight = 5   # Reduced from 10
         
     def step1_preprocess_inputs(self):
-        """Step 1: Preprocessing Inputs - Read and parse Excel sheets"""
+        """Step 1: Preprocessing Inputs - Read and parse validated CSV files"""
         print("Step 1: Preprocessing Inputs...")
         
-        # Read Excel sheets
-        self.courses_df = pd.read_excel(self.input_file, sheet_name="Courses")
-        self.faculty_df = pd.read_excel(self.input_file, sheet_name="Faculty")
-        self.rooms_df = pd.read_excel(self.input_file, sheet_name="Rooms")
-        self.timeslots_df = pd.read_excel(self.input_file, sheet_name="Time Slots")
-        self.students_df = pd.read_excel(self.input_file, sheet_name="Students")
+        # Read from validated CSV files (matching CSP3.py approach)
+        data_folder = "validated"
+        
+        # Check if validated folder exists
+        if not os.path.exists(data_folder):
+            raise FileNotFoundError(f"Validated data folder '{data_folder}' not found. "
+                                  f"Please ensure your input file has been processed through the validation step first.")
+        
+        # Check if required CSV files exist
+        required_files = ["Courses.csv", "Faculty.csv", "Rooms.csv", "Time Slots.csv", "Students.csv"]
+        missing_files = [f for f in required_files if not os.path.exists(os.path.join(data_folder, f))]
+        if missing_files:
+            raise FileNotFoundError(f"Missing required CSV files in '{data_folder}': {missing_files}. "
+                                  f"Please ensure your input file has been properly validated.")
+        self.courses_df = pd.read_csv(os.path.join(data_folder, "Courses.csv"))
+        self.faculty_df = pd.read_csv(os.path.join(data_folder, "Faculty.csv"))
+        self.rooms_df = pd.read_csv(os.path.join(data_folder, "Rooms.csv"))
+        self.timeslots_df = pd.read_csv(os.path.join(data_folder, "Time Slots.csv"))
+        self.students_df = pd.read_csv(os.path.join(data_folder, "Students.csv"))
+        
+        # Convert assigned courses from string to dict (matching CSP3.py)
+        self.faculty_df["Courses_Assigned"] = self.faculty_df["Courses_Assigned"].apply(ast.literal_eval)
+        
+        # Verify required columns exist
+        required_columns = {
+            'courses_df': ['Course_ID', 'Course_Name', 'Duration', 'Course_Type', 'Capacity', 'Weekdays', 'Section'],
+            'faculty_df': ['Faculty_ID', 'Faculty_Name', 'Courses_Assigned'],
+            'rooms_df': ['Room_ID', 'Room_Capacity', 'Room_Type'],
+            'timeslots_df': ['Day', 'Start_Time', 'End_Time'],
+            'students_df': ['Total_Students']
+        }
+        
+        for df_name, columns in required_columns.items():
+            df = getattr(self, df_name)
+            missing_columns = [col for col in columns if col not in df.columns]
+            if missing_columns:
+                raise ValueError(f"Missing required columns in {df_name}: {missing_columns}. "
+                               f"Please ensure your input file has been properly validated and contains all required columns.")
         
         # Parse duration to minutes
         self.courses_df['Duration_Minutes'] = self.courses_df['Duration'].apply(self._parse_duration)
@@ -100,15 +136,84 @@ class GeneticTimetableGenerator:
         # Parse courses assigned (convert string to dict)
         self.faculty_df['Courses_Assigned'] = self.faculty_df['Courses_Assigned'].apply(self._parse_courses_assigned)
         
-        # Compute Processed_Courses and Processed_Ratings (top 3 by rating)
-        def get_top3_courses(courses_assigned):
-            if not courses_assigned:
-                return [], {}
-            sorted_courses = sorted(courses_assigned.items(), key=lambda x: x[1], reverse=True)
-            top3 = sorted_courses[:3]
-            return [c for c, _ in top3], {c: r for c, r in top3}
-        self.faculty_df['Processed_Courses'] = self.faculty_df['Courses_Assigned'].apply(lambda d: get_top3_courses(d)[0])
-        self.faculty_df['Processed_Ratings'] = self.faculty_df['Courses_Assigned'].apply(lambda d: get_top3_courses(d)[1])
+        # Process faculty assignments like CSP3.py
+        print("Processing faculty assignments...")
+        
+        # Function to get 3 courses for faculty based on ratings (matching CSP3.py)
+        def get_three_courses_for_faculty(faculty_courses, all_courses):
+            # Step 1: Sort courses by rating
+            courses_with_ratings = [(course, rating) for course, rating in faculty_courses.items()]
+            courses_with_ratings.sort(key=lambda x: x[1], reverse=True)
+            
+            assigned_courses_with_ratings = {}
+            
+            # Step 1: If more than 3 courses, take top 3 highest rated
+            if len(courses_with_ratings) >= 3:
+                for course, rating in courses_with_ratings[:3]:
+                    assigned_courses_with_ratings[course] = rating
+                return assigned_courses_with_ratings
+            
+            # Step 2: If less than 3, first take all assigned courses
+            for course, rating in courses_with_ratings:
+                assigned_courses_with_ratings[course] = rating
+            
+            # Step 2: Try to fill with additional sections of existing courses
+            if len(assigned_courses_with_ratings) < 3:
+                original_courses = list(assigned_courses_with_ratings.keys())
+                for course in original_courses:
+                    if len(assigned_courses_with_ratings) >= 3:
+                        break
+                    # Get the base course name and rating
+                    base_rating = assigned_courses_with_ratings[course]
+                    # Find all sections of this course in courses_df
+                    course_sections = self.courses_df[self.courses_df['Course_ID'] == course]['Section'].iloc[0].split(', ')
+                    # Add sections as new courses with same rating
+                    for section in course_sections:
+                        if len(assigned_courses_with_ratings) >= 3:
+                            break
+                        section_course = course
+                        if section_course not in assigned_courses_with_ratings:
+                            assigned_courses_with_ratings[section_course] = base_rating
+            
+            # Step 3: If still less than 3, add random courses with rating 1
+            if len(assigned_courses_with_ratings) < 3:
+                remaining_slots = 3 - len(assigned_courses_with_ratings)
+                available_courses = [c for c in all_courses if c not in assigned_courses_with_ratings]
+                if available_courses:
+                    random_courses = random.sample(available_courses, min(remaining_slots, len(available_courses)))
+                    for course in random_courses:
+                        assigned_courses_with_ratings[course] = 1  # Assign lowest rating to random courses
+            
+            return assigned_courses_with_ratings
+        
+        # Initialize empty list for processed courses
+        processed_courses_list = []
+        processed_ratings_list = []
+        
+        # Process faculty assignments
+        print("\nProcessing faculty assignments...")
+        for _, faculty_row in self.faculty_df.iterrows():
+            processed_with_ratings = get_three_courses_for_faculty(
+                faculty_row['Courses_Assigned'],
+                self.courses_df['Course_ID'].unique().tolist()
+            )
+            processed_courses_list.append(list(processed_with_ratings.keys()))
+            processed_ratings_list.append(processed_with_ratings)
+        
+        # Add processed courses and their ratings as new columns
+        self.faculty_df['Processed_Courses'] = processed_courses_list
+        self.faculty_df['Processed_Ratings'] = processed_ratings_list
+        
+        # Print summary of assignments
+        print("\nFinal Faculty Course Assignments:")
+        for _, faculty_row in self.faculty_df.iterrows():
+            print(f"\nFaculty: {faculty_row['Faculty_Name']} (ID: {faculty_row['Faculty_ID']})")
+            print("Original Courses with Ratings:")
+            for course, rating in faculty_row['Courses_Assigned'].items():
+                print(f"  {course}: {rating}")
+            print("Processed Courses with Ratings:")
+            for course, rating in faculty_row['Processed_Ratings'].items():
+                print(f"  {course}: {rating}")
         
         # Generate sections from student count
         self.total_students = self.students_df['Total_Students'].iloc[0]
@@ -242,33 +347,109 @@ class GeneticTimetableGenerator:
         self._generate_time_slots()
     
     def _generate_time_slots(self):
-        """Generate time slots based on available days and times"""
+        """Generate time slots matching CSP3.py approach"""
+        print("Generating time slots...")
+        
+        # Define standard time blocks like CSP3.py
+        standard_slots = {
+            "1h": [  # 1 hour blocks
+                {"start": "8:00 AM", "end": "9:00 AM"},
+                {"start": "9:00 AM", "end": "10:00 AM"},
+                {"start": "10:00 AM", "end": "11:00 AM"},
+                {"start": "11:00 AM", "end": "12:00 PM"},
+                {"start": "12:00 PM", "end": "1:00 PM"},
+                {"start": "1:00 PM", "end": "2:00 PM"},
+                {"start": "2:00 PM", "end": "3:00 PM"},
+                {"start": "3:00 PM", "end": "4:00 PM"},
+                {"start": "4:00 PM", "end": "5:00 PM"},
+                {"start": "5:00 PM", "end": "6:00 PM"}
+            ],
+            "1h15m": [  # 1 hour 15 minutes blocks
+                {"start": "8:00 AM", "end": "9:15 AM"},
+                {"start": "9:30 AM", "end": "10:45 AM"},
+                {"start": "11:00 AM", "end": "12:15 PM"},
+                {"start": "12:30 PM", "end": "1:45 PM"},
+                {"start": "2:00 PM", "end": "3:15 PM"},
+                {"start": "3:30 PM", "end": "4:45 PM"},
+                {"start": "5:00 PM", "end": "6:15 PM"}
+            ],
+            "1h30m": [  # 1.5 hour blocks
+                {"start": "8:00 AM", "end": "9:30 AM"},
+                {"start": "9:30 AM", "end": "11:00 AM"},
+                {"start": "11:00 AM", "end": "12:30 PM"},
+                {"start": "12:30 PM", "end": "2:00 PM"},
+                {"start": "2:00 PM", "end": "3:30 PM"},
+                {"start": "3:30 PM", "end": "5:00 PM"},
+                {"start": "5:00 PM", "end": "6:30 PM"}
+            ],
+            "2h30m": [  # 2.5 hour blocks
+                {"start": "8:00 AM", "end": "10:30 AM"},
+                {"start": "11:00 AM", "end": "1:30 PM"},
+                {"start": "2:00 PM", "end": "4:30 PM"},
+                {"start": "5:00 PM", "end": "7:30 PM"}
+            ]
+        }
+        
+        # Get days from timeslots_df
+        days = self.timeslots_df['Day'].unique().tolist()
+        
+        # Create timeslots for each day using standard blocks
         self.time_slots = []
-        
-        # Get unique days from timeslots
-        days = self.timeslots_df['Day'].unique()
-        
-        # Standard time blocks
-        time_blocks = [
-            {"start": 8.0, "end": 9.0},    # 8:00 AM - 9:00 AM
-            {"start": 9.0, "end": 10.0},   # 9:00 AM - 10:00 AM
-            {"start": 10.0, "end": 11.0},  # 10:00 AM - 11:00 AM
-            {"start": 11.0, "end": 12.0},  # 11:00 AM - 12:00 PM
-            {"start": 12.0, "end": 13.0},  # 12:00 PM - 1:00 PM
-            {"start": 13.0, "end": 14.0},  # 1:00 PM - 2:00 PM
-            {"start": 14.0, "end": 15.0},  # 2:00 PM - 3:00 PM
-            {"start": 15.0, "end": 16.0},  # 3:00 PM - 4:00 PM
-            {"start": 16.0, "end": 17.0},  # 4:00 PM - 5:00 PM
-            {"start": 17.0, "end": 18.0},  # 5:00 PM - 6:00 PM
-        ]
-        
         for day in days:
-            for block in time_blocks:
-                self.time_slots.append({
-                    'Day': day,
-                    'StartTime': block['start'],
-                    'EndTime': block['end']
-                })
+            for duration_type, time_blocks in standard_slots.items():
+                for block in time_blocks:
+                    # Convert time strings to float hours
+                    start_time = self._time_str_to_float(block["start"])
+                    end_time = self._time_str_to_float(block["end"])
+                    
+                    self.time_slots.append({
+                        "Day": day,
+                        "Start_Time": start_time,
+                        "End_Time": end_time,
+                        "Duration_Type": duration_type,
+                        "Start_Time_Str": block["start"],
+                        "End_Time_Str": block["end"]
+                    })
+        
+        print(f"Generated {len(self.time_slots)} time slots")
+    
+    def _time_str_to_float(self, time_str: str) -> float:
+        """Convert time string to float hours (e.g., '8:00 AM' -> 8.0)"""
+        time_str = time_str.strip().upper()
+        match = re.match(r'(\d+):(\d+)\s*([AP]M)', time_str)
+        if not match:
+            return 0.0
+        
+        hour, minute, ampm = int(match.group(1)), int(match.group(2)), match.group(3)
+        if ampm == 'PM' and hour != 12:
+            hour += 12
+        if ampm == 'AM' and hour == 12:
+            hour = 0
+        
+        return hour + minute / 60.0
+    
+    def _get_duration_type(self, duration_minutes: int) -> str:
+        """Get duration type based on minutes (matching CSP3.py logic)"""
+        if duration_minutes <= 60:
+            return "1h"
+        elif duration_minutes <= 75:
+            return "1h15m"
+        elif duration_minutes <= 90:
+            return "1h30m"
+        else:
+            return "2h30m"
+    
+    def _get_faculty_ratings_for_course(self, course_id: str, relaxed: bool = False):
+        """Get faculty ratings for a course (matching CSP3.py logic)"""
+        if not relaxed:
+            faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
+                             for f in self.faculty 
+                             if course_id in f['Courses_Assigned']]
+            faculty_ratings.sort(key=lambda x: x[1], reverse=True)
+        else:
+            faculty_ratings = [(f, f['Courses_Assigned'].get(course_id, 0)) 
+                             for f in self.faculty]
+        return faculty_ratings
     
     def step2_create_chromosome_structure(self) -> List[Gene]:
         """Step 2: Create chromosome structure - Generate genes for all course sections"""
@@ -311,65 +492,152 @@ class GeneticTimetableGenerator:
         print(f"✓ Generated {len(self.population)} chromosomes")
     
     def _create_random_chromosome(self, base_genes: List[Gene]) -> Chromosome:
-        """Create a random chromosome with valid assignments"""
+        """Create a random chromosome with proper duration matching"""
         genes = []
-        faculty_section_count = {}
+        room_bookings = defaultdict(set)  # (day, start_time) -> set of room_ids
+        faculty_bookings = defaultdict(set)  # (day, start_time) -> set of faculty_ids
+        section_bookings = defaultdict(set)  # (day, start_time) -> set of (course_id, section)
+        faculty_section_count = defaultdict(int)  # faculty_id -> number of sections assigned
+        
+        # Track faculty assignments for Core courses to ensure same faculty for both sessions
+        core_course_faculty_assignments = {}  # (course_id, section) -> faculty_id
+        
         for base_gene in base_genes:
             try:
-                # Find course details
+                # Get course details
                 course = next((c for c in self.courses if c['Course_ID'] == base_gene.CourseID), None)
                 if not course:
                     continue
-                # Find eligible faculty (only those with this course in Processed_Courses and <3 sections assigned)
-                eligible_faculty = [
-                    f for f in self.faculty
-                    if base_gene.CourseID in f.get('Processed_Courses', [])
-                    and faculty_section_count.get(f['Faculty_ID'], 0) < 3
+                
+                # Get duration type for this course
+                duration_type = self._get_duration_type(course['Duration_Minutes'])
+                
+                # Check if this is a Core course that already has a faculty assigned
+                course_section_key = (base_gene.CourseID, base_gene.Section)
+                if course['Course_Type'] == "Core" and course_section_key in core_course_faculty_assignments:
+                    # Use the same faculty as the first session
+                    assigned_faculty_id = core_course_faculty_assignments[course_section_key]
+                    faculty = next((f for f in self.faculty if f['Faculty_ID'] == assigned_faculty_id), None)
+                    if not faculty:
+                        continue
+                else:
+                    # Get available faculty for this course
+                    faculty_ratings = self._get_faculty_ratings_for_course(base_gene.CourseID, relaxed=False)
+                    available_faculty = [
+                        f for f, rating in faculty_ratings 
+                        if base_gene.CourseID in f.get('Processed_Courses', []) and 
+                        faculty_section_count.get(f['Faculty_ID'], 0) < 3
+                    ]
+                    
+                    if not available_faculty:
+                        # Try relaxed mode
+                        available_faculty = [
+                            f for f in self.faculty 
+                            if faculty_section_count.get(f['Faculty_ID'], 0) < 3
+                        ]
+                    
+                    if not available_faculty:
+                        continue
+                    
+                    # Select faculty (prefer higher rated)
+                    faculty = random.choice(available_faculty)
+                    
+                    # For Core courses, store the faculty assignment for the second session
+                    if course['Course_Type'] == "Core":
+                        core_course_faculty_assignments[course_section_key] = faculty['Faculty_ID']
+                
+                faculty_section_count[faculty['Faculty_ID']] += 1
+                
+                # Get suitable rooms
+                room_type = "Lab" if course['Course_Type'] == "Lab" else "Lecture"
+                suitable_rooms = [
+                    r for r in self.rooms 
+                    if r['Room_Capacity'] >= course['Capacity'] and r['Room_Type'] == room_type
                 ]
-                if not eligible_faculty:
+                
+                if not suitable_rooms:
                     continue
-                faculty = random.choice(eligible_faculty)
-                # Track number of sections assigned to this faculty
-                faculty_section_count[faculty['Faculty_ID']] = faculty_section_count.get(faculty['Faculty_ID'], 0) + 1
-                # Find eligible rooms
-                eligible_rooms = [
-                    r for r in self.rooms
-                    if r['Room_Capacity'] >= course['Capacity'] and
-                    r['Room_Type'] == course['Course_Type']
+                
+                # Get time slots matching duration type
+                available_timeslots = [
+                    ts for ts in self.time_slots 
+                    if ts['Duration_Type'] == duration_type
                 ]
-                if not eligible_rooms:
-                    eligible_rooms = self.rooms
-                if not eligible_rooms:
+                
+                if not available_timeslots:
                     continue
-                room = random.choice(eligible_rooms)
-                # Find eligible time slots
-                eligible_slots = [
-                    ts for ts in self.time_slots
-                    if ts['Day'] in faculty['Available_Days']
-                ]
-                if not eligible_slots:
-                    eligible_slots = self.time_slots
-                if not eligible_slots:
-                    continue
-                time_slot = random.choice(eligible_slots)
-                # Calculate end time based on duration
-                duration_hours = course['Duration_Minutes'] / 60.0
-                end_time = time_slot['StartTime'] + duration_hours
-                # Create gene
+                
+                # Try to find a valid assignment
+                assigned = False
+                for _ in range(50):  # Try up to 50 times
+                    time_slot = random.choice(available_timeslots)
+                    room = random.choice(suitable_rooms)
+                    
+                    time_key = (time_slot['Day'], time_slot['Start_Time'])
+                    
+                    # Check conflicts
+                    if (room['Room_ID'] in room_bookings[time_key] or
+                        faculty['Faculty_ID'] in faculty_bookings[time_key] or
+                        (base_gene.CourseID, base_gene.Section) in section_bookings[time_key]):
+                        continue
+                    
+                    # Create gene
+                    gene = Gene(
+                        CourseID=base_gene.CourseID,
+                        Section=base_gene.Section,
+                        FacultyID=faculty['Faculty_ID'],
+                        RoomID=room['Room_ID'],
+                        Day=time_slot['Day'],
+                        StartTime=time_slot['Start_Time'],
+                        EndTime=time_slot['End_Time']
+                    )
+                    
+                    # Update bookings
+                    room_bookings[time_key].add(room['Room_ID'])
+                    faculty_bookings[time_key].add(faculty['Faculty_ID'])
+                    section_bookings[time_key].add((base_gene.CourseID, base_gene.Section))
+                    
+                    genes.append(gene)
+                    assigned = True
+                    break
+                
+                if not assigned:
+                    # Create gene with random assignment (will be penalized)
+                    time_slot = random.choice(available_timeslots)
+                    room = random.choice(suitable_rooms)
+                    
+                    gene = Gene(
+                        CourseID=base_gene.CourseID,
+                        Section=base_gene.Section,
+                        FacultyID=faculty['Faculty_ID'],
+                        RoomID=room['Room_ID'],
+                        Day=time_slot['Day'],
+                        StartTime=time_slot['Start_Time'],
+                        EndTime=time_slot['End_Time']
+                    )
+                    genes.append(gene)
+                    
+                    # Update bookings even for conflicted assignments
+                    time_key = (time_slot['Day'], time_slot['Start_Time'])
+                    room_bookings[time_key].add(room['Room_ID'])
+                    faculty_bookings[time_key].add(faculty['Faculty_ID'])
+                    section_bookings[time_key].add((base_gene.CourseID, base_gene.Section))
+                    
+            except Exception as e:
+                # Create a placeholder gene to maintain chromosome length consistency
+                # This will be heavily penalized in fitness calculation
                 gene = Gene(
                     CourseID=base_gene.CourseID,
                     Section=base_gene.Section,
-                    FacultyID=faculty['Faculty_ID'],
-                    RoomID=room['Room_ID'],
-                    Day=time_slot['Day'],
-                    StartTime=time_slot['StartTime'],
-                    EndTime=end_time
+                    FacultyID=1,  # Default faculty ID
+                    RoomID="R1",  # Default room ID
+                    Day="Monday", # Default day
+                    StartTime=8.0, # Default start time
+                    EndTime=9.0    # Default end time
                 )
                 genes.append(gene)
-            except Exception as e:
-                continue
-        chromosome = Chromosome(genes=genes)
-        return chromosome
+        
+        return Chromosome(genes=genes)
     
     def step4_calculate_fitness(self, chromosome: Chromosome) -> float:
         """Step 4: Calculate fitness function"""
@@ -395,13 +663,23 @@ class GeneticTimetableGenerator:
         return chromosome.fitness
     
     def _calculate_hard_constraint_penalties(self, chromosome: Chromosome) -> int:
-        """Calculate hard constraint violations"""
+        """Calculate hard constraint violations (matching CSP3.py constraints)"""
         penalties = 0
         # Track bookings for conflict detection
         room_bookings = defaultdict(set)  # (day, start_time) -> set of room_ids
         faculty_bookings = defaultdict(set)  # (day, start_time) -> set of faculty_ids
         section_bookings = defaultdict(set)  # (day, start_time) -> set of (course_id, section)
         faculty_section_count = defaultdict(int)  # faculty_id -> number of sections assigned
+        
+        # Track faculty day times for continuous window constraint
+        faculty_day_times = defaultdict(list)  # (faculty_id, day) -> list of (start_time, end_time)
+        
+        # Track lecture start times for fixed time constraint
+        lecture_start_times = defaultdict(set)  # (faculty_id, section) -> set of start_times
+        
+        # Track faculty assignments for Core courses to check same faculty constraint
+        core_course_faculty_assignments = defaultdict(set)  # (course_id, section) -> set of faculty_ids
+        
         for gene in chromosome.genes:
             try:
                 # Get course details
@@ -409,54 +687,79 @@ class GeneticTimetableGenerator:
                 room = next((r for r in self.rooms if r['Room_ID'] == gene.RoomID), None)
                 faculty = next((f for f in self.faculty if f['Faculty_ID'] == gene.FacultyID), None)
                 if not course or not room or not faculty:
-                    penalties += 10  # Heavy penalty for missing data
+                    penalties += 100  # Heavy penalty for missing data
                     continue
+                
                 # Faculty can only be assigned to their Processed_Courses
                 if gene.CourseID not in faculty.get('Processed_Courses', []):
-                    penalties += 10
+                    penalties += 100
+                
                 # Track number of sections assigned to this faculty
                 faculty_section_count[gene.FacultyID] += 1
+                
                 # Check room type mismatch
                 if course['Course_Type'] == "Lab" and room['Room_Type'] != "Lab":
-                    penalties += 1
+                    penalties += 100
                 elif course['Course_Type'] != "Lab" and room['Room_Type'] != "Lecture":
-                    penalties += 1
+                    penalties += 100
+                
                 # Check room capacity
                 if room['Room_Capacity'] < course['Capacity']:
-                    penalties += 1
+                    penalties += 100
+                
                 # Check faculty assignment
                 if gene.CourseID not in faculty['Courses_Assigned']:
-                    penalties += 1
+                    penalties += 100
+                
                 # Check time slot bounds
                 if gene.StartTime < 8.0 or gene.EndTime > 18.0:
-                    penalties += 1
+                    penalties += 100
+                
                 # Check course duration fit
                 expected_duration = course['Duration_Minutes'] / 60.0
                 actual_duration = gene.EndTime - gene.StartTime
                 if abs(actual_duration - expected_duration) > 0.1:  # Allow small tolerance
-                    penalties += 1
+                    penalties += 100
+                
                 # Check double bookings
                 time_key = (gene.Day, gene.StartTime)
+                
                 # Room double booking
                 if gene.RoomID in room_bookings[time_key]:
-                    penalties += 1
+                    penalties += 100
                 room_bookings[time_key].add(gene.RoomID)
+                
                 # Faculty double booking
                 if gene.FacultyID in faculty_bookings[time_key]:
-                    penalties += 1
+                    penalties += 100
                 faculty_bookings[time_key].add(gene.FacultyID)
+                
                 # Section double booking
                 section_key = (gene.CourseID, gene.Section)
                 if section_key in section_bookings[time_key]:
-                    penalties += 1
+                    penalties += 100
                 section_bookings[time_key].add(section_key)
+                
+                # Track faculty day times for continuous window constraint
+                faculty_day_times[(gene.FacultyID, gene.Day)].append((gene.StartTime, gene.EndTime))
+                
+                # Track lecture start times for fixed time constraint
+                if course['Course_Type'] != "Lab":  # Only for lectures
+                    lecture_start_times[(gene.FacultyID, gene.Section)].add(gene.StartTime)
+                
+                # Track faculty assignments for Core courses
+                if course['Course_Type'] == "Core":
+                    core_course_faculty_assignments[(gene.CourseID, gene.Section)].add(gene.FacultyID)
+                
             except Exception as e:
-                penalties += 5  # Penalty for any errors
+                penalties += 50  # Penalty for any errors
                 continue
+        
         # After all genes, check faculty section count
         for faculty_id, count in faculty_section_count.items():
             if count > 3:
-                penalties += (count - 3) * 10  # Heavy penalty for each extra section
+                penalties += (count - 3) * 100  # Heavy penalty for each extra section
+        
         # Check course frequency violation
         course_sessions = defaultdict(int)
         for gene in chromosome.genes:
@@ -465,8 +768,56 @@ class GeneticTimetableGenerator:
             expected_sessions = course['Weekdays']
             actual_sessions = course_sessions[course['Course_ID']]
             if actual_sessions != expected_sessions:
-                penalties += abs(actual_sessions - expected_sessions)
+                penalties += abs(actual_sessions - expected_sessions) * 100
+        
+        # Check faculty continuous window constraint (CSP3.py style)
+        for (faculty_id, day), times in faculty_day_times.items():
+            if len(times) > 1:
+                start_minutes = [s * 60 for s, _ in times]
+                end_minutes = [e * 60 for _, e in times]
+                earliest_start = min(start_minutes)
+                latest_end = max(end_minutes)
+                
+                for start_time, end_time in times:
+                    s_min = start_time * 60
+                    e_min = end_time * 60
+                    if s_min < earliest_start or e_min > latest_end:
+                        penalties += 50  # Soft constraint penalty
+        
+        # Check lecture fixed time across week constraint (CSP3.py style)
+        for (faculty_id, section), start_times in lecture_start_times.items():
+            if len(start_times) > 1:
+                penalties += (len(start_times) - 1) * 50  # Soft constraint penalty
+        
+        # Check same faculty constraint for Core courses (both lecture sessions must have same faculty)
+        for (course_id, section), faculty_ids in core_course_faculty_assignments.items():
+            if len(faculty_ids) > 1:
+                penalties += (len(faculty_ids) - 1) * 100  # Heavy penalty for different faculty assignments
+        
         return penalties
+    
+    def _track_conflicts(self, gene: Gene, reason: str):
+        """Track conflicts for reporting (matching CSP3.py approach)"""
+        course_name = next((c['Course_Name'] for c in self.courses if c['Course_ID'] == gene.CourseID), gene.CourseID)
+        self.all_conflict_reasons[(course_name, gene.Section)].add(reason)
+    
+    def _get_conflict_summary(self) -> List[Dict]:
+        """Get conflict summary for unassigned courses (matching CSP3.py)"""
+        if self.best_chromosome is None:
+            return []
+        
+        assigned_keys = set((gene.CourseID, gene.Section) for gene in self.best_chromosome.genes)
+        final_conflicts = []
+        
+        for (cname, section), reasons in self.all_conflict_reasons.items():
+            if (cname, section) not in assigned_keys:
+                final_conflicts.append({
+                    "CourseName": cname,
+                    "Section": section,
+                    "Reason": "; ".join(sorted(reasons))
+                })
+        
+        return final_conflicts
     
     def _calculate_soft_constraint_penalties(self, chromosome: Chromosome) -> int:
         """Calculate soft constraint violations"""
@@ -544,11 +895,20 @@ class GeneticTimetableGenerator:
         # Alternate genes from parents
         child_genes = []
         
-        for i in range(len(parent1.genes)):
+        # Use the minimum length to avoid index out of range
+        min_length = min(len(parent1.genes), len(parent2.genes))
+        
+        for i in range(min_length):
             if i % 2 == 0:
                 child_genes.append(parent1.genes[i])
             else:
                 child_genes.append(parent2.genes[i])
+        
+        # If one parent has more genes, add them from the longer parent
+        if len(parent1.genes) > min_length:
+            child_genes.extend(parent1.genes[min_length:])
+        elif len(parent2.genes) > min_length:
+            child_genes.extend(parent2.genes[min_length:])
         
         # Validate and fix conflicts
         child = Chromosome(genes=child_genes)
@@ -563,8 +923,24 @@ class GeneticTimetableGenerator:
         faculty_bookings = defaultdict(set)
         section_bookings = defaultdict(set)
         
+        # Track faculty assignments for Core courses to maintain same faculty constraint
+        core_course_faculty_assignments = {}  # (course_id, section) -> faculty_id
+        
         for gene in chromosome.genes:
             time_key = (gene.Day, gene.StartTime)
+            
+            # Get course details
+            course = next((c for c in self.courses if c['Course_ID'] == gene.CourseID), None)
+            if not course:
+                continue
+            
+            # Check if this is a Core course that should have same faculty as previous session
+            course_section_key = (gene.CourseID, gene.Section)
+            if course['Course_Type'] == "Core" and course_section_key in core_course_faculty_assignments:
+                expected_faculty_id = core_course_faculty_assignments[course_section_key]
+                if gene.FacultyID != expected_faculty_id:
+                    # Fix: assign the same faculty as the first session
+                    gene.FacultyID = expected_faculty_id
             
             # Check for conflicts
             has_conflict = False
@@ -584,6 +960,10 @@ class GeneticTimetableGenerator:
             room_bookings[time_key].add(gene.RoomID)
             faculty_bookings[time_key].add(gene.FacultyID)
             section_bookings[time_key].add((gene.CourseID, gene.Section))
+            
+            # Store faculty assignment for Core courses
+            if course['Course_Type'] == "Core":
+                core_course_faculty_assignments[course_section_key] = gene.FacultyID
     
     def _find_alternative_slot(self, gene: Gene, room_bookings: dict, faculty_bookings: dict, section_bookings: dict):
         """Find alternative time slot for a gene"""
@@ -595,7 +975,7 @@ class GeneticTimetableGenerator:
             if time_slot['Day'] not in faculty['Available_Days']:
                 continue
             
-            time_key = (time_slot['Day'], time_slot['StartTime'])
+            time_key = (time_slot['Day'], time_slot['Start_Time'])
             
             # Check if this slot is available
             if (gene.RoomID not in room_bookings[time_key] and
@@ -604,7 +984,7 @@ class GeneticTimetableGenerator:
                 
                 # Update gene
                 gene.Day = time_slot['Day']
-                gene.StartTime = time_slot['StartTime']
+                gene.StartTime = time_slot['Start_Time']
                 gene.EndTime = gene.StartTime + (course['Duration_Minutes'] / 60.0)
                 return
         
@@ -628,29 +1008,54 @@ class GeneticTimetableGenerator:
             # Assign new time slot
             time_slot = random.choice(self.time_slots)
             gene.Day = time_slot['Day']
-            gene.StartTime = time_slot['StartTime']
+            gene.StartTime = time_slot['Start_Time']
             gene.EndTime = gene.StartTime + (course['Duration_Minutes'] / 60.0)
         
         elif mutation_type == 'room':
             # Assign new room
+            room_type = "Lab" if course['Course_Type'] == "Lab" else "Lecture"
             eligible_rooms = [
                 r for r in self.rooms 
                 if r['Room_Capacity'] >= course['Capacity'] and 
-                r['Room_Type'] == course['Course_Type']
+                r['Room_Type'] == room_type
             ]
             if eligible_rooms:
                 room = random.choice(eligible_rooms)
                 gene.RoomID = room['Room_ID']
         
         elif mutation_type == 'faculty':
-            # Assign new faculty
-            eligible_faculty = [
-                f for f in self.faculty 
-                if gene.CourseID in f['Courses_Assigned']
-            ]
-            if eligible_faculty:
-                faculty = random.choice(eligible_faculty)
-                gene.FacultyID = faculty['Faculty_ID']
+            # For Core courses, we need to be careful about faculty mutation
+            # to maintain the same faculty constraint for both sessions
+            course = next((c for c in self.courses if c['Course_ID'] == gene.CourseID), None)
+            if course and course['Course_Type'] == "Core":
+                # For Core courses, we should avoid faculty mutation to maintain constraint
+                # Instead, mutate time or room
+                if random.random() < 0.5:
+                    # Assign new time slot
+                    time_slot = random.choice(self.time_slots)
+                    gene.Day = time_slot['Day']
+                    gene.StartTime = time_slot['Start_Time']
+                    gene.EndTime = gene.StartTime + (course['Duration_Minutes'] / 60.0)
+                else:
+                    # Assign new room
+                    room_type = "Lab" if course['Course_Type'] == "Lab" else "Lecture"
+                    eligible_rooms = [
+                        r for r in self.rooms 
+                        if r['Room_Capacity'] >= course['Capacity'] and 
+                        r['Room_Type'] == room_type
+                    ]
+                    if eligible_rooms:
+                        room = random.choice(eligible_rooms)
+                        gene.RoomID = room['Room_ID']
+            else:
+                # For Lab courses, faculty mutation is allowed
+                eligible_faculty = [
+                    f for f in self.faculty 
+                    if gene.CourseID in f.get('Processed_Courses', [])
+                ]
+                if eligible_faculty:
+                    faculty = random.choice(eligible_faculty)
+                    gene.FacultyID = faculty['Faculty_ID']
     
     def step8_local_search(self, chromosomes: List[Chromosome]):
         """Step 8: Local search - improve chromosomes"""
@@ -711,12 +1116,42 @@ class GeneticTimetableGenerator:
         
         return True
     
+    def _validate_chromosome_structure(self, chromosome: Chromosome, expected_length: int) -> bool:
+        """Validate that chromosome has the expected structure"""
+        if len(chromosome.genes) != expected_length:
+            print(f"⚠️ Chromosome length mismatch: expected {expected_length}, got {len(chromosome.genes)}")
+            return False
+        return True
+    
+    def _print_chromosome_stats(self, population: List[Chromosome], generation: int = 0):
+        """Print statistics about chromosome lengths in population"""
+        lengths = [len(chromosome.genes) for chromosome in population]
+        unique_lengths = set(lengths)
+        print(f"Generation {generation}: Chromosome lengths - {unique_lengths}")
+        if len(unique_lengths) > 1:
+            print(f"⚠️ Multiple chromosome lengths detected: {unique_lengths}")
+            for length in unique_lengths:
+                count = lengths.count(length)
+                print(f"  Length {length}: {count} chromosomes")
+    
     def step9_evolution_loop(self):
         """Step 9: Main evolution loop"""
         print("Step 9: Starting Evolution Loop...")
         
         start_time = time.time()
         best_fitness_history = []
+        
+        # Get expected chromosome length from base structure
+        base_genes = self.step2_create_chromosome_structure()
+        expected_length = len(base_genes)
+        
+        # Validate and fix initial population structure
+        print("Validating initial population structure...")
+        self._print_chromosome_stats(self.population, 0)
+        for i, chromosome in enumerate(self.population):
+            if not self._validate_chromosome_structure(chromosome, expected_length):
+                print(f"Fixing chromosome {i} structure...")
+                chromosome.genes = self._create_random_chromosome(base_genes).genes
         
         # Calculate initial fitness for all chromosomes
         print("Calculating initial fitness...")
@@ -765,7 +1200,22 @@ class GeneticTimetableGenerator:
             parents = self.step5_selection()
             
             # Crossover
-            children = self.step6_crossover(parents)
+            try:
+                children = self.step6_crossover(parents)
+                
+                # Validate children structure
+                for child in children:
+                    if not self._validate_chromosome_structure(child, expected_length):
+                        # Fix chromosome by recreating it
+                        child.genes = self._create_random_chromosome(base_genes).genes
+            except Exception as e:
+                print(f"Error in crossover: {e}")
+                # Create new random children as fallback
+                children = [self._create_random_chromosome(base_genes) for _ in range(len(parents))]
+            
+            # Print chromosome stats after crossover
+            if generation % 10 == 0:
+                self._print_chromosome_stats(children, generation)
             
             # Mutation
             self.step7_mutation(children)
@@ -792,6 +1242,12 @@ class GeneticTimetableGenerator:
             while len(new_population) < self.population_size:
                 new_population.append(random.choice(self.population))
             
+            # Final validation of new population
+            for i, chromosome in enumerate(new_population):
+                if not self._validate_chromosome_structure(chromosome, expected_length):
+                    print(f"Final fix for chromosome {i} in generation {generation}")
+                    chromosome.genes = self._create_random_chromosome(base_genes).genes
+            
             self.population = new_population[:self.population_size]
         
         print(f"✓ Evolution completed in {time.time() - start_time:.2f} seconds")
@@ -801,65 +1257,228 @@ class GeneticTimetableGenerator:
             print("✓ No valid solution found")
     
     def step10_export_output(self, output_file: str):
-        """Step 10: Export output to Excel"""
+        """Step 10: Export output to Excel (matching CSP3.py formatting)"""
         print("Step 10: Exporting Output...")
         
         if self.best_chromosome is None:
             print("❌ No valid solution found")
             return
         
+        # Handle file permission issues by adding timestamp if file exists
+        import os
+        import time
+        base_name, ext = os.path.splitext(output_file)
+        if os.path.exists(output_file):
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            output_file = f"{base_name}_{timestamp}{ext}"
+            print(f"⚠️  Original file exists, using: {output_file}")
+        
         # Create timetable data
         timetable_data = []
         for gene in self.best_chromosome.genes:
-            course = next(c for c in self.courses if c['Course_ID'] == gene.CourseID)
-            faculty = next(f for f in self.faculty if f['Faculty_ID'] == gene.FacultyID)
-            room = next(r for r in self.rooms if r['Room_ID'] == gene.RoomID)
-            
-            timetable_data.append({
-                'CourseID': gene.CourseID,
-                'CourseName': course['Course_Name'],
-                'CourseType': course['Course_Type'],
-                'Section': gene.Section,
-                'FacultyID': gene.FacultyID,
-                'FacultyName': faculty['Faculty_Name'],
-                'Day': gene.Day,
-                'StartTime': f"{int(gene.StartTime):02d}:{int((gene.StartTime % 1) * 60):02d}",
-                'EndTime': f"{int(gene.EndTime):02d}:{int((gene.EndTime % 1) * 60):02d}",
-                'Room': gene.RoomID,
-                'RoomType': room['Room_Type'],
-                'Rating': faculty['Courses_Assigned'].get(gene.CourseID, 1)
-            })
+            try:
+                course = next(c for c in self.courses if c['Course_ID'] == gene.CourseID)
+                faculty = next(f for f in self.faculty if f['Faculty_ID'] == gene.FacultyID)
+                room = next(r for r in self.rooms if r['Room_ID'] == gene.RoomID)
+                
+                timetable_data.append({
+                    'CourseID': gene.CourseID,
+                    'CourseName': course['Course_Name'],
+                    'CourseType': course['Course_Type'],
+                    'Section': gene.Section,
+                    'FacultyID': gene.FacultyID,
+                    'FacultyName': faculty['Faculty_Name'],
+                    'Day': gene.Day,
+                    'StartTime': f"{int(gene.StartTime):02d}:{int((gene.StartTime % 1) * 60):02d}",
+                    'EndTime': f"{int(gene.EndTime):02d}:{int((gene.EndTime % 1) * 60):02d}",
+                    'Room': gene.RoomID,
+                    'RoomType': room['Room_Type'],
+                    'Rating': faculty['Courses_Assigned'].get(gene.CourseID, 1)
+                })
+            except Exception as e:
+                print(f"Error processing gene: {e}")
+                continue
         
         # Create unassigned courses data
         unassigned_data = []
         assigned_courses = set((gene.CourseID, gene.Section) for gene in self.best_chromosome.genes)
         
+        # Get conflict summary for better reporting
+        conflict_summary = self._get_conflict_summary()
+        
         for course in self.courses:
             course_key = (course['Course_ID'], course['Section'])
             if course_key not in assigned_courses:
+                # Find specific reason from conflict tracking
+                course_name = course['Course_Name']
+                section = course['Section']
+                reason = "Could not be scheduled due to constraints"
+                
+                # Look for specific conflict reason
+                for conflict in conflict_summary:
+                    if conflict['CourseName'] == course_name and conflict['Section'] == section:
+                        reason = conflict['Reason']
+                        break
+                
                 unassigned_data.append({
-                    'CourseName': course['Course_Name'],
-                    'Section': course['Section'],
-                    'Reason': 'Could not be scheduled due to constraints'
+                    'CourseName': course_name,
+                    'Section': section,
+                    'Reason': reason
                 })
         
-        # Create Excel file
-        with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
-            # Timetable sheet
-            if timetable_data:
-                timetable_df = pd.DataFrame(timetable_data)
-                timetable_df.to_excel(writer, sheet_name='Timetable', index=False)
-            
-            # Unassigned courses sheet
-            if unassigned_data:
-                unassigned_df = pd.DataFrame(unassigned_data)
-                unassigned_df.to_excel(writer, sheet_name='Unassigned Courses', index=False)
+        # Create Excel file with CSP3.py style formatting
+        print(f"\nSaving timetable to Excel: {output_file}")
+        try:
+            with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
+                workbook = writer.book
+                worksheet = workbook.add_worksheet("Timetable")
+                writer.sheets["Timetable"] = worksheet
+                
+                # Define formats (matching CSP3.py)
+                bold_format = workbook.add_format({"bold": True, "font_size": 14, "align": "center"})
+                header_format = workbook.add_format({"bold": True, "bg_color": "#D9E1F2", "border": 1})
+                
+                if timetable_data:
+                    timetable_df = pd.DataFrame(timetable_data)
+                    
+                    # Sort by section number (matching CSP3.py)
+                    def extract_section_number(section):
+                        match = re.search(r'V(\d+)', section)
+                        return int(match.group(1)) if match else float('inf')
+                    
+                    timetable_df = timetable_df.sort_values('Section', key=lambda x: x.apply(extract_section_number))
+                    
+                    # Write data grouped by sections (matching CSP3.py)
+                    row = 0
+                    for section in sorted(timetable_df["Section"].unique(), key=extract_section_number):
+                        section_df = timetable_df[timetable_df["Section"] == section]
+                        
+                        # Write section header
+                        worksheet.merge_range(row, 0, row, len(section_df.columns) - 1, f"Section-{section} Courses", bold_format)
+                        row += 1
+                        
+                        # Write column headers
+                        for col_num, value in enumerate(section_df.columns):
+                            worksheet.write(row, col_num, value, header_format)
+                        row += 1
+                        
+                        # Write data
+                        for record in section_df.itertuples(index=False):
+                            for col_num, value in enumerate(record):
+                                worksheet.write(row, col_num, value)
+                            row += 1
+                        
+                        row += 2  # Add space before next section
+                    
+                    # Set column widths
+                    for col_num, column in enumerate(timetable_df.columns):
+                        max_length = max(
+                            len(str(column)),
+                            timetable_df[column].astype(str).str.len().max()
+                        )
+                        worksheet.set_column(col_num, col_num, max_length + 2)
+                
+                # Unassigned courses sheet
+                if unassigned_data:
+                    unassigned_df = pd.DataFrame(unassigned_data)
+                    unassigned_df.to_excel(writer, sheet_name='Unassigned Courses', index=False)
         
+        except PermissionError as e:
+            print(f"❌ Permission Error: {e}")
+            print("💡 Solutions:")
+            print("   1. Close the Excel file if it's open in another application")
+            print("   2. Check if you have write permissions in the current directory")
+            print("   3. Try running the program as administrator")
+            print("   4. The program will try to create a new file with timestamp")
+            
+            # Try with a different filename
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            new_output_file = f"genetic_timetable_output_{timestamp}.xlsx"
+            print(f"🔄 Trying alternative filename: {new_output_file}")
+            
+            try:
+                with pd.ExcelWriter(new_output_file, engine='xlsxwriter') as writer:
+                    # Recreate the Excel content
+                    workbook = writer.book
+                    worksheet = workbook.add_worksheet("Timetable")
+                    writer.sheets["Timetable"] = worksheet
+                    
+                    # Define formats
+                    bold_format = workbook.add_format({"bold": True, "font_size": 14, "align": "center"})
+                    header_format = workbook.add_format({"bold": True, "bg_color": "#D9E1F2", "border": 1})
+                    
+                    if timetable_data:
+                        timetable_df = pd.DataFrame(timetable_data)
+                        
+                        # Sort by section number
+                        def extract_section_number(section):
+                            match = re.search(r'V(\d+)', section)
+                            return int(match.group(1)) if match else float('inf')
+                        
+                        timetable_df = timetable_df.sort_values('Section', key=lambda x: x.apply(extract_section_number))
+                        
+                        # Write data grouped by sections
+                        row = 0
+                        for section in sorted(timetable_df["Section"].unique(), key=extract_section_number):
+                            section_df = timetable_df[timetable_df["Section"] == section]
+                            
+                            # Write section header
+                            worksheet.merge_range(row, 0, row, len(section_df.columns) - 1, f"Section-{section} Courses", bold_format)
+                            row += 1
+                            
+                            # Write column headers
+                            for col_num, value in enumerate(section_df.columns):
+                                worksheet.write(row, col_num, value, header_format)
+                            row += 1
+                            
+                            # Write data
+                            for record in section_df.itertuples(index=False):
+                                for col_num, value in enumerate(record):
+                                    worksheet.write(row, col_num, value)
+                                row += 1
+                            
+                            row += 2  # Add space before next section
+                        
+                        # Set column widths
+                        for col_num, column in enumerate(timetable_df.columns):
+                            max_length = max(
+                                len(str(column)),
+                                timetable_df[column].astype(str).str.len().max()
+                            )
+                            worksheet.set_column(col_num, col_num, max_length + 2)
+                    
+                    # Unassigned courses sheet
+                    if unassigned_data:
+                        unassigned_df = pd.DataFrame(unassigned_data)
+                        unassigned_df.to_excel(writer, sheet_name='Unassigned Courses', index=False)
+                
+                print(f"✓ Output exported to {new_output_file}")
+                output_file = new_output_file
+                
+            except Exception as e2:
+                print(f"❌ Failed to create alternative file: {e2}")
+                print("💡 Please close any open Excel files and try again")
+                return
+        except Exception as e: # Catch any other unexpected errors during export
+            print(f"❌ An unexpected error occurred during export: {e}")
+            return
+
         print(f"✓ Output exported to {output_file}")
         print(f"✓ Scheduled {len(timetable_data)} sessions")
         print(f"✓ {len(unassigned_data)} courses could not be scheduled")
+        
+        # Calculate and display accuracy metrics (matching CSP3.py)
+        total_course_sections = len(self.courses)
+        unique_scheduled_course_sections = len(set((gene.CourseID, gene.Section) for gene in self.best_chromosome.genes))
+        unscheduled_course_sections = total_course_sections - unique_scheduled_course_sections
+        accuracy = (unique_scheduled_course_sections / total_course_sections) * 100 if total_course_sections > 0 else 0
+        
+        print(f"\n📊 Accuracy Metrics:")
+        print(f"Scheduled Course-Sections: {unique_scheduled_course_sections}/{total_course_sections}")
+        print(f"Unscheduled Course-Sections: {unscheduled_course_sections}")
+        print(f"Accuracy: {accuracy:.2f}%")
     
-    def run(self, output_file: str = "genetic_timetable.xlsx"):
+    def run(self, output_file: str = "genetic_timetable_output_new.xlsx"):
         """Run the complete genetic algorithm"""
         print("🧬 Starting Genetic Algorithm Timetable Generator")
         print("=" * 50)
@@ -905,7 +1524,7 @@ def main():
     )
     
     # Run the algorithm
-    generator.run("genetic_timetable_output.xlsx")
+    generator.run("genetic_timetable_output_new.xlsx")
 
 if __name__ == "__main__":
     main() 
