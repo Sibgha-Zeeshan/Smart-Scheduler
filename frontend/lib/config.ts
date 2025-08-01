@@ -1,0 +1,1 @@
+export const API_BASE_URL = 'https://fyp-production-9572.up.railway.app';
