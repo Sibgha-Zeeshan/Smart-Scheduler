@@ -1,4 +1,3 @@
-# type: ignore 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form, Query, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +39,14 @@ MONGO_URL = "mongodb+srv://dbuser:dbuserpassword@cluster0.xm91idu.mongodb.net/"
 client = MongoClient(MONGO_URL)
 db = client["smartSchedule"]
 register_collection = db["register"]
+
+# Add pending_verifications collection for email verification
+pending_verifications_collection = db["pending_verifications"]
+
+import random
+
+def generate_verification_code():
+    return str(random.randint(1000, 9999))
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -199,22 +206,65 @@ async def register_user(
     # Check if user already exists (by email or username)
     if register_collection.find_one({"$or": [{"email": email}, {"username": username}]}):
         raise HTTPException(status_code=400, detail="User with this email or username already exists.")
+    
+    # Check if there's already a pending verification for this email/username
+    existing_pending = pending_verifications_collection.find_one({"$or": [{"email": email}, {"username": username}]})
+    if existing_pending:
+        # Remove the existing pending verification to create a new one
+        pending_verifications_collection.delete_one({"_id": existing_pending["_id"]})
+    
     # Hash the password
     hashed_password = pwd_context.hash(password)
-    # Insert new user
-    user_data = {
+    # Generate verification code
+    code = generate_verification_code()
+    # Store in pending_verifications
+    pending_verifications_collection.insert_one({
         "email": email,
         "username": username,
-        "password": hashed_password,  # Store only the hash
-        "role": role
+        "password": hashed_password,
+        "role": role,
+        "code": code
+    })
+    # Send verification email
+    try:
+        send_email(
+            email,
+            "Your Verification Code",
+            f"Hello {username},\n\nYour verification code is: {code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nAdmin Team"
+        )
+    except Exception as e:
+        print("Failed to send verification email:", e)
+        raise HTTPException(status_code=500, detail="Failed to send verification email.")
+    return {"message": "Verification code sent to your email. Please verify to complete signup."}
+
+class EmailVerificationRequest(BaseModel):
+    email: str
+    code: str
+
+@app.post("/verify-email/")
+async def verify_email(req: EmailVerificationRequest):
+    # Find pending verification
+    pending = pending_verifications_collection.find_one({"email": req.email})
+    if not pending:
+        raise HTTPException(status_code=404, detail="No pending verification found for this email.")
+    if pending["code"] != req.code:
+        raise HTTPException(status_code=400, detail="Invalid verification code.")
+    # Move user to register and admin.request
+    user_data = {
+        "email": pending["email"],
+        "username": pending["username"],
+        "password": pending["password"],
+        "role": pending["role"]
     }
-    result = register_collection.insert_one(user_data)
-    # Add to admin.request collection
-    admin_request_collection.insert_one({"email": email, "username": username, "role": role})
-    if result.inserted_id:
-        return {"message": "User registered successfully."}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to register user.")
+    register_collection.insert_one(user_data)
+    admin_request_collection.insert_one({
+        "email": pending["email"],
+        "username": pending["username"],
+        "role": pending["role"]
+    })
+    # Remove from pending_verifications
+    pending_verifications_collection.delete_one({"_id": pending["_id"]})
+    return {"message": "Email verified and your request is pending. When accepted or rejected, you will get an email."}
 
 @app.post("/login/")
 async def login_user(
@@ -257,9 +307,10 @@ class EmailRequest(BaseModel):
 
 def send_email(to_email, subject, body):
     sender_email = "hello19213141@gmail.com"
-    sender_password = "gkhndyphfhmcurig"  # Gmail app password, no spaces
+    sender_password = "gkhndyphfhmcurig" 
+    from_name = "UMT Admin"
     msg = MIMEMultipart()
-    msg["From"] = sender_email
+    msg["From"] = f"{from_name} <{sender_email}>"
     msg["To"] = to_email
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
@@ -442,6 +493,34 @@ async def download_template():
         filename="timetable_template.xlsx",
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+class ResendCodeRequest(BaseModel):
+    email: str
+
+@app.post("/resend-code/")
+async def resend_code(req: ResendCodeRequest):
+    # Find pending verification
+    pending = pending_verifications_collection.find_one({"email": req.email})
+    if not pending:
+        raise HTTPException(status_code=404, detail="No pending verification found for this email.")
+    # Generate a new code
+    new_code = generate_verification_code()
+    # Update the code in the database
+    pending_verifications_collection.update_one(
+        {"email": req.email},
+        {"$set": {"code": new_code}}
+    )
+    # Send the new code via email
+    try:
+        send_email(
+            req.email,
+            "Your New Verification Code",
+            f"Hello {pending['username']},\n\nYour new verification code is: {new_code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nAdmin Team"
+        )
+    except Exception as e:
+        print("Failed to send new verification email:", e)
+        raise HTTPException(status_code=500, detail="Failed to send new verification email.")
+    return {"message": "A new verification code has been sent to your email."}
 
 if __name__ == "__main__":
     import uvicorn
