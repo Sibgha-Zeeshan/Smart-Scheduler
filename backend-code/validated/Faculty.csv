@@ -1,0 +1,99 @@
+Faculty_ID,Faculty_Name,Courses_Assigned,Availability,Start_Time,End_Time
+1,Noaman Saleem,{'CC112': 3},Monday-Friday,8,17
+2,Dr Muhammad Nadeem Ashraf,{'CC112': 5},Monday-Thursday,9,19
+3,Shahbaz Qadeer,{'CC112': 3},Tuesday-Friday,8,18
+4,Ammar Haider,{'CC112': 3},Monday-Friday,10,14
+5,Dr. Syed Farooq Ali,{'CC112': 3},Monday-Thursday,9,17
+6,Raeena Tauqir,{'CC112': 5},Monday-Wednesday,8,17
+7,Muhammad Owais Khan,{'CC112': 4},Tuesday-Thursday,9,18
+8,Muzahir Saleem,{'CC112': 5},Monday-Friday,10,16
+9,Maham Saleem,{'CC112': 5},Wednesday-Friday,8,17
+10,Hassan Bashir,"{'CC112': 5, 'CC251': 3}",Monday-Thursday,9,19
+11,Hafiz Ahsan Arshad,{'CC112': 3},Monday-Friday,8,17
+12,Sehrish Munawar,{'CC112': 4},Monday-Thursday,9,19
+13,Ayesha Yasin,"{'CC112': 4, 'CC121': 4}",Tuesday-Friday,8,18
+14,Jaweria Aslam,{'CC112L': 4},Monday-Friday,10,14
+15,Muhmmad Umar Farooq,"{'CC112L': 5, 'CC141': 5, 'CC121': 4, 'CC230L': 5}",Monday-Thursday,9,17
+16,Tabish Riaz,"{'CC112L': 4, 'CC121L': 5}",Monday-Wednesday,8,17
+17,Muhammad Abdullah Fiaz,"{'CC112L': 5, 'CC230L': 4}",Tuesday-Thursday,9,18
+18,Zahida Tayyab,{'CC112L': 5},Monday-Friday,10,16
+19,Somia Waseem,"{'CC112L': 4, 'CC230L': 5}",Wednesday-Friday,8,17
+20,Tahir Mehmood,{'CC112L': 5},Monday-Thursday,9,19
+21,Junaid Ali Bhatti,"{'CC112L': 3, 'CC121L': 4}",Monday-Friday,8,17
+22,Riaz Ahmad,"{'CC112L': 4, 'CC230L': 4}",Monday-Thursday,9,19
+23,Dr Muhammad Husnain Ashfaq,"{'CC121': 4, 'CC230': 4}",Tuesday-Friday,8,18
+24,Usman Ul Huq,"{'CC121': 4, 'CC251': 3}",Monday-Friday,10,14
+25,Asim Aziz Waqas,{'CC121': 3},Monday-Thursday,9,17
+26,Saima Shaheen,{'CC121': 4},Monday-Wednesday,8,17
+27,Amjad Ali,"{'CC121': 4, 'CC141': 3}",Tuesday-Thursday,9,18
+28,Rafia Asad Khan,{'CC121': 4},Monday-Friday,8,17
+29,Faitma Shahzad,{'CC121': 5},Monday-Thursday,9,19
+30,Arslan Shahid,{'CC121': 4},Tuesday-Friday,8,18
+31,Dr.Muhammad Adnan,"{'CC121': 3, 'CC251': 5}",Monday-Friday,10,14
+32,Numan Babar,{'CC121': 3},Monday-Thursday,9,17
+33,Dr Syed Baqar Hussain,"{'CC121': 4, 'CC251': 3}",Monday-Wednesday,8,17
+34,Laraib Kanwal,"{'CC121': 5, 'CC251': 4}",Tuesday-Thursday,9,18
+35,Hafsa Rafique,{'CC121': 4},Monday-Friday,10,16
+36,Faheem Akbar,"{'CC121L': 4, 'CC230L': 5}",Wednesday-Friday,8,17
+37,Hafiz Muhammad Ashja Khan,{'CC121L': 3},Monday-Thursday,9,19
+38,Intesab Mohidin,"{'CC121L': 3, 'CC251L': 4}",Monday-Friday,8,17
+39,Jaweria Aamir Ali,{'CC121L': 4},Monday-Thursday,9,19
+40,Shahzaib Mushtaq Shah,"{'CC121L': 3, 'CC230L': 5}",Tuesday-Friday,8,18
+41,Awais Amin,{'CC121L': 3},Monday-Friday,10,14
+42,Zohaib Ashraf,"{'CC121L': 5, 'CC251L': 3}",Monday-Thursday,9,17
+43,TBA-LAB,{'CC121L': 4},Monday-Wednesday,8,17
+44,Dr Khawar Nadeem,{'CC141': 4},Tuesday-Thursday,9,18
+45,Ayesha Asmat,{'CC141': 3},Monday-Friday,10,16
+46,Muhmmad Jawad Farooq,{'CC141': 4},Wednesday-Friday,8,17
+47,Hashir Hussain,{'CC141': 5},Monday-Thursday,9,19
+48,Sheeza Zaheer,"{'CC141': 3, 'CC230': 4}",Monday-Friday,8,17
+49,Ali Raza,"{'CC141': 4, 'CC230L': 3}",Monday-Thursday,9,19
+50,Dr. Iqra Javed,{'CC141': 3},Tuesday-Friday,8,18
+51,Muhammad Shahbaz,{'CC141': 5},Monday-Friday,10,14
+52,Muhmmad Ehsan,"{'CC141': 4, 'CC230': 4}",Monday-Thursday,9,17
+53,Muhammad Imran shafi,{'CC141': 4},Monday-Wednesday,8,17
+54,Zarnab Azam,{'CC141': 3},Tuesday-Thursday,9,18
+55,Sidra Ramzan,"{'CC251': 3, 'CC230': 5}",Monday-Friday,8,17
+56,Habiba Habib,{'CC251': 4},Monday-Thursday,9,19
+57,Rashid Rasheed,{'CC251': 5},Tuesday-Friday,8,18
+58,Rabia Qasim,{'CC251': 4},Monday-Friday,10,14
+59,Sowaiba Khan,{'CC251': 3},Monday-Thursday,9,17
+60,Dr Bilal Ashfaq Ahmed,{'CC251': 5},Monday-Wednesday,8,17
+61,Muhammad Sarwar,{'CC251': 5},Tuesday-Thursday,9,18
+62,Iqra Asharaf,{'CC251': 5},Monday-Friday,10,16
+63, Ammar Yasir Sajjad,{'CC251': 4},Wednesday-Friday,8,17
+64,Dr. Naeem Ahmed,{'CC251': 5},Monday-Thursday,9,19
+65,Muhammad Rumaan,{'CC251': 5},Monday-Friday,8,17
+66,Muhammad Fahad Irshad,{'CC251L': 3},Monday-Thursday,9,19
+67,Emmara Zulfiqar,{'CC251L': 4},Tuesday-Friday,8,18
+68,Amna Faisal,{'CC251L': 4},Monday-Friday,10,14
+69,Hafiz Muhammad Rizwan,{'CC251L': 3},Monday-Thursday,9,17
+70,Tahir Shahzad,"{'CC251L': 3, 'CC230L': 5}",Monday-Wednesday,8,17
+71,Khawaja Ubaid Ur Rehman,{'CC230': 3},Tuesday-Thursday,9,18
+72,Amna Zulfiqar,{'CC230': 3},Monday-Friday,10,16
+73,Mian Ahmad Shafiq,{'CC230': 4},Wednesday-Friday,8,17
+74,Rida Ayesha,{'CC230': 3},Monday-Thursday,9,19
+75,Hafiz Abdul Rehman,{'CC230': 5},Monday-Friday,8,17
+76,Shoaib Khan,{'CC230': 3},Monday-Thursday,9,19
+77,Iqra Khalid,{'CC230': 3},Tuesday-Friday,8,18
+78,Junaid Abdullah Mansoor,{'CC230': 5},Monday-Friday,10,14
+79,Hafsa Riasat,{'CC230': 3},Monday-Thursday,9,17
+80,Fasiha Ashraf,{'CC230': 3},Monday-Wednesday,8,17
+81,Noor Fatima,{'CC230': 4},Tuesday-Thursday,9,18
+82,Abdul Jamil,{'CC230': 3},Monday-Friday,8,17
+83,Bilal Hussain,{'CC230L': 3},Monday-Thursday,9,19
+84,Iqra Khalil,{'CC230L': 4},Tuesday-Friday,8,18
+85,Muhammad Rizwan,{'CC230L': 3},Monday-Friday,10,14
+86,TBA-Lab1,{'CC230L': 3},Monday-Thursday,9,17
+87,Uzair Arslan,{'CC230L': 4},Monday-Wednesday,8,17
+88,Dr Waseem Iqbal,{'CS245': 4},Tuesday-Thursday,9,18
+89,Dr. Yaser Daniaal Khan,{'CS245': 5},Monday-Friday,10,16
+90,Dr. Muhammad Asim Butt,{'CS245': 3},Wednesday-Friday,8,17
+91,Bilal Anwar,{'CS245': 3},Monday-Thursday,9,19
+92,Nitasha Arooj,{'CS245': 4},Monday-Friday,8,17
+93,Muhammad Shoaib,{'CS245': 5},Monday-Thursday,9,19
+94,Shamila Ghafoor,{'CS245': 4},Tuesday-Friday,8,18
+95,Dr Tayaba Anjum,{'CS245': 5},Monday-Friday,10,14
+96,Ahmad Hussain,{'CS245': 5},Monday-Thursday,9,17
+97,Muhamamd Awais Ali,{'CS245': 3},Monday-Wednesday,8,17
+98,Muhammad Ayaz,{'CS245': 5},Tuesday-Thursday,9,18
