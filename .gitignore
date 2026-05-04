@@ -1,5 +1,8 @@
 __pycache__/ 
 template/
+output/
+uploads/
+validated/
 
 # dependencies
 node_modules
