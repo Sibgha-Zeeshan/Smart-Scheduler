@@ -1,3 +1,4 @@
+# type: ignore
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form, Query, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
