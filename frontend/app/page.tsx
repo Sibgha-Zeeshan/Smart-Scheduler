@@ -206,34 +206,39 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
-            {[
-              { without: "Room double-booked by two classes", with: "Every room optimally assigned, zero overlap" },
-              { without: "Faculty teaching two courses at the same time", with: "No scheduling conflicts across any faculty" },
-              { without: "Days of back-and-forth manual adjustments", with: "Complete semester timetable in under 5 minutes" },
-              { without: "Vague errors with no explanation", with: "System tells you exactly what it couldn't schedule and why" },
-              { without: "Overloaded faculty, empty rooms", with: "Fair workload distribution, optimal room usage" },
-              { without: "Starting over when one thing changes", with: "Regenerate instantly with updated input data" },
-            ].map((row, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-2 gap-3 p-4 sm:p-5 rounded-xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
-              >
-                <div className="flex items-start gap-2">
-                  <XCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{row.without}</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed font-medium">{row.with}</p>
-                </div>
-              </div>
-            ))}
-
-            {/* Column headers */}
-            <div className="col-span-2 order-first grid grid-cols-2 gap-3 px-4 sm:px-5 pb-1">
+          <div className="max-w-4xl mx-auto">
+            {/* Column Headers */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-4 px-1">
               <p className="text-xs font-bold tracking-widest text-red-400 uppercase">Without Smart Scheduler</p>
               <p className="text-xs font-bold tracking-widest text-green-500 uppercase">With Smart Scheduler</p>
+            </div>
+
+            {/* Rows — each row is one without/with pair */}
+            <div className="flex flex-col gap-3 sm:gap-4">
+              {[
+                { without: "Room double-booked by two classes", with: "Every room optimally assigned, zero overlap" },
+                { without: "Faculty teaching two courses at the same time", with: "No scheduling conflicts across any faculty" },
+                { without: "Days of back-and-forth manual adjustments", with: "Complete semester timetable in under 5 minutes" },
+                { without: "Vague errors with no explanation", with: "System tells you exactly what it couldn't schedule and why" },
+                { without: "Overloaded faculty, empty rooms", with: "Fair workload distribution, optimal room usage" },
+                { without: "Starting over when one thing changes", with: "Regenerate instantly with updated input data" },
+              ].map((row, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-5 rounded-xl bg-white/80 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
+                >
+                  {/* Without */}
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{row.without}</p>
+                  </div>
+                  {/* With */}
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed font-medium">{row.with}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
