@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Calendar, Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -27,19 +24,16 @@ export default function SignupPage() {
     role: "",
   })
   const { toast } = useToast()
+  const router = useRouter()
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Add password validation
     if (formData.password.length < 8) {
       toast({
         variant: "destructive",
@@ -71,10 +65,10 @@ export default function SignupPage() {
         toast({
           variant: "success",
           title: "Registration Successful!",
-          description: data.detail || "Please check your email for verification code.",
+          description: "Your request is pending admin approval. You will be notified once approved.",
         })
-        setUserEmail(formData.email)
-        setShowVerificationDialog(true)
+        setFormData({ username: "", email: "", password: "", role: "" })
+        setTimeout(() => { router.push("/login") }, 2000)
       } else {
         toast({
           variant: "destructive",
@@ -93,68 +87,73 @@ export default function SignupPage() {
     }
   }
 
-  const handleVerificationSuccess = () => {
-    // Reset form
-    setFormData({
-      username: "",
-      email: "",
-      password: "",
-      role: "",
-    })
-    setUserEmail("")
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4 py-8">
+      <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="flex items-center justify-between mb-5">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 text-sm font-medium"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Back to Home</span>
-            <span className="sm:hidden">Back</span>
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Back to Home
           </Link>
           <ThemeToggle />
         </div>
 
         <Card className="shadow-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6 sm:pb-8 px-4 sm:px-6">
-            <div className="flex items-center justify-center space-x-2 mb-3 sm:mb-4">
-              <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-400" />
-              <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                <span className="hidden sm:inline">Smart Scheduler</span>
-                <span className="sm:hidden">Smart</span>
-              </span>
+          <CardHeader className="text-center pt-7 pb-5 px-6">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Smart Scheduler</span>
             </div>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
               Create Account
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
+            <CardDescription className="text-gray-600 dark:text-gray-300 text-sm mt-1">
               Join Smart Scheduler and start organizing your time
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="px-4 sm:px-6">
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Username
-                </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Choose a username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange("username", e.target.value)}
-                  required
-                  className="h-11 sm:h-12 text-base transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
-                />
+          <CardContent className="px-6 pb-7">
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+              {/* Username + Role side by side on larger screens */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Choose a username"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    required
+                    className="h-11 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="role" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Role
+                  </Label>
+                  <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)} required>
+                    <SelectTrigger className="h-11 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
+              {/* Email */}
+              <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Address
                 </Label>
@@ -165,11 +164,12 @@ export default function SignupPage() {
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
-                  className="h-11 sm:h-12 text-base transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
+                  className="h-11 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* Password */}
+              <div className="space-y-1.5">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </Label>
@@ -182,40 +182,26 @@ export default function SignupPage() {
                     onChange={(e) => handleInputChange("password", e.target.value)}
                     required
                     minLength={8}
-                    className="h-11 sm:h-12 text-base pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
+                    className="h-11 text-sm pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Role
-                </Label>
-                <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)} required>
-                  <SelectTrigger className="h-11 sm:h-12 text-base transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm">
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters</p>
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-11 sm:h-12 text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200 mt-2"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Creating Account...
                   </div>
@@ -225,7 +211,7 @@ export default function SignupPage() {
               </Button>
             </form>
 
-            <div className="mt-4 sm:mt-6 text-center">
+            <div className="mt-5 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Already have an account?{" "}
                 <Link
@@ -239,14 +225,6 @@ export default function SignupPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Email Verification Dialog */}
-      <EmailVerificationDialog
-        isOpen={showVerificationDialog}
-        onClose={() => setShowVerificationDialog(false)}
-        email={userEmail}
-        onVerificationSuccess={handleVerificationSuccess}
-      />
     </div>
   )
 }
