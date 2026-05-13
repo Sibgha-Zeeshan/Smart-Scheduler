@@ -9,10 +9,10 @@ import { ErrorBoundary } from "@/components/error-boundary"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Smart Scheduler - Intelligent Scheduling Assistant",
+  title: "Smart Scheduler",
   description:
     "Your intelligent assistant for building a conflict-free timetable. Organize classes, meetings, and events effortlessly.",
-    generator: 'v0.dev'
+    generator: 'smart-scheduler',
 }
 
 export default function RootLayout({

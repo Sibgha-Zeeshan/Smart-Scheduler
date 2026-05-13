@@ -36,7 +36,7 @@ os.makedirs("validated", exist_ok=True)
 os.makedirs("output", exist_ok=True)
 
 # MongoDB setup
-MONGO_URL = "mongodb://mongo:27017/smartSchedule"
+MONGO_URL = os.environ.get("MONGO_URL", "mongodb://mongo:27017/smartSchedule")
 client = MongoClient(MONGO_URL)
 db = client["smartSchedule"]
 register_collection = db["register"]
@@ -52,6 +52,9 @@ def generate_verification_code():
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "umtadmin@umt.edu.pk")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+
 # --- Admin DB setup ---
 admin_client = MongoClient(MONGO_URL)
 admin_db = admin_client["admin1"]
@@ -59,9 +62,14 @@ admin_login_collection = admin_db["login"]
 admin_request_collection = admin_db["request"]
 admin_history_collection = admin_db["history"]
 
+
+
 # Ensure default admin exists
-if not admin_login_collection.find_one({"email": "umtadmin@umt.edu.pk"}):
-    admin_login_collection.insert_one({"email": "umtadmin@umt.edu.pk", "password": pwd_context.hash("admin123")})
+if not admin_login_collection.find_one({"email": ADMIN_EMAIL}):
+    admin_login_collection.insert_one({
+        "email": ADMIN_EMAIL,
+        "password": pwd_context.hash(ADMIN_PASSWORD)
+    })
 
 @app.post("/upload-excel/")
 async def upload_excel_file(excel_file: UploadFile = File(...)):
@@ -84,30 +92,30 @@ async def upload_excel_file(excel_file: UploadFile = File(...)):
 
 @app.post("/validate-excel/")
 async def validate_excel(filename: str = Form(...)):
-    """Validate the uploaded Excel file and generate CSV files, returning all validation messages from v.py."""
+    """Validate the uploaded Excel file and generate CSV files, returning all validation messages from processing.py."""
     excel_path = os.path.join("uploads", filename)
     if not os.path.exists(excel_path):
         raise HTTPException(status_code=400, detail="Excel file not found. Please upload a file first.")
     try:
-        # Import the v.py module dynamically
-        spec = importlib.util.spec_from_file_location("v", "v.py")
-        v_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(v_module)
-        # Capture stdout to get all print statements from v.py
+        # Import the processing.py module dynamically
+        spec = importlib.util.spec_from_file_location("processing", "processing.py")
+        processing_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(processing_module)
+        # Capture stdout to get all print statements from processing.py
         import sys
         import io
         log_capture = io.StringIO()
         original_stdout = sys.stdout
         sys.stdout = log_capture
         # Load and validate Excel data
-        excel_data = v_module.load_excel(excel_path)
-        validated_sheets = v_module.validate_data(excel_data)
+        excel_data = processing_module.load_excel(excel_path)
+        validated_sheets = processing_module.validate_data(excel_data)
         # Clear validated directory
         if os.path.exists("validated"):
             shutil.rmtree("validated")
         os.makedirs("validated", exist_ok=True)
         # Save validated data to CSV files
-        v_module.save_to_csv(validated_sheets, "validated")
+        processing_module.save_to_csv(validated_sheets, "validated")
         # Restore stdout
         sys.stdout = original_stdout
         validation_log = log_capture.getvalue()
@@ -134,9 +142,9 @@ async def generate_timetable(filename: str = Form(...)):
         timetable_path = os.path.join("output", output_name)
         if os.path.exists(timetable_path):
             os.remove(timetable_path)
-        # Pass input and output filenames to CSP3.py
+        # Pass input and output filenames to core-algorithm.py
         try:
-            subprocess.run(["python", "CSP3.py", filename, output_name], check=True)
+            subprocess.run(["python", "core-algorithm.py", filename, output_name], check=True)
         finally:
             if os.path.exists(lock_path):
                 os.remove(lock_path)
@@ -231,7 +239,7 @@ async def register_user(
         send_email(
             email,
             "Your Verification Code",
-            f"Hello {username},\n\nYour verification code is: {code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nAdmin Team"
+            f"Hello {username},\n\nYour verification code is: {code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nSmart Scheduler Team"
         )
     except Exception as e:
         print("Failed to send verification email:", e)
@@ -241,6 +249,7 @@ async def register_user(
 class EmailVerificationRequest(BaseModel):
     email: str
     code: str
+
 
 @app.post("/verify-email/")
 async def verify_email(req: EmailVerificationRequest):
@@ -307,9 +316,9 @@ class EmailRequest(BaseModel):
     email: str
 
 def send_email(to_email, subject, body):
-    sender_email = "your_email"
-    sender_password = "your_password" 
-    from_name = "UMT Admin"
+    sender_email = os.environ.get("EMAIL_USER")
+    sender_password = os.environ.get("EMAIL_PASS")
+    from_name = "Smart Scheduler"
     msg = MIMEMultipart()
     msg["From"] = f"{from_name} <{sender_email}>"
     msg["To"] = to_email
@@ -336,7 +345,7 @@ async def approve_request(req: EmailRequest):
         send_email(
             req_doc["email"],
             "Your Registration Has Been Approved",
-            f"Hello {req_doc['username']},\n\nYour registration has been approved. You can now log in to the system.\n\nBest regards,\nAdmin Team"
+            f"Hello {req_doc['username']},\n\nYour registration has been approved. You can now log in to the system.\n\nBest regards,\nSmart Scheduler Team"
         )
     except Exception as e:
         print("Failed to send approval email:", e)
@@ -360,7 +369,7 @@ async def reject_request(req: EmailRequest):
         send_email(
             req_doc["email"],
             "Your Registration Has Been Rejected",
-            f"Hello {req_doc['username']},\n\nWe regret to inform you that your registration request has been rejected.\n\nBest regards,\nAdmin Team"
+            f"Hello {req_doc['username']},\n\nWe regret to inform you that your registration request has been rejected.\n\nBest regards,\nSmart Scheduler Team"
         )
     except Exception as e:
         print("Failed to send rejection email:", e)
@@ -429,13 +438,13 @@ async def edit_history(req: HistoryEditRequest):
                     send_email(
                         req.email,
                         "Your Registration Has Been Rejected",
-                        f"Hello {username},\n\nWe regret to inform you that your registration request has been rejected.\n\nBest regards,\nAdmin Team"
+                        f"Hello {username},\n\nWe regret to inform you that your registration request has been rejected.\n\nBest regards,\nSmart Scheduler Team"
                     )
                 elif req.action == "approved":
                     send_email(
                         req.email,
                         "Your Registration Has Been Approved",
-                        f"Hello {username},\n\nYour registration has been approved. You can now log in to the system.\n\nBest regards,\nAdmin Team"
+                        f"Hello {username},\n\nYour registration has been approved. You can now log in to the system.\n\nBest regards,\nSmart Scheduler Team"
                     )
             except Exception as e:
                 print("Failed to send history edit email:", e)
@@ -516,7 +525,7 @@ async def resend_code(req: ResendCodeRequest):
         send_email(
             req.email,
             "Your New Verification Code",
-            f"Hello {pending['username']},\n\nYour new verification code is: {new_code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nAdmin Team"
+            f"Hello {pending['username']},\n\nYour new verification code is: {new_code}\n\nPlease enter this code to verify your email and complete signup.\n\nBest regards,\nSmart Scheduler Team"
         )
     except Exception as e:
         print("Failed to send new verification email:", e)

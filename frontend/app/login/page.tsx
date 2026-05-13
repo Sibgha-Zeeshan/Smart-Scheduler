@@ -115,202 +115,272 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 sm:mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Back to Home</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-
-        <Card className="shadow-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6 sm:pb-8 px-4 sm:px-6">
-            <div className="flex items-center justify-center space-x-2 mb-3 sm:mb-4">
-              <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-400" />
-              <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                <span className="hidden sm:inline">Smart Scheduler</span>
-                <span className="sm:hidden">Smart</span>
-              </span>
-            </div>
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
-              Sign in to your account
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="px-4 sm:px-6">
-            <Tabs value={loginType} onValueChange={(value) => setLoginType(value as "user" | "admin")} className="mb-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="user" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>User</span>
-                </TabsTrigger>
-                <TabsTrigger value="admin" className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Admin</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="user" className="mt-6">
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Email Address
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      required
-                      className="h-11 sm:h-12 text-base transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Password
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password (min 8 characters)"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        required
-                        minLength={8}
-                        className="h-11 sm:h-12 text-base pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">Remember me</span>
-                    </label>
-                    <Link
-                      href="#"
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full h-11 sm:h-12 text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Signing In...
-                      </div>
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="admin" className="mt-6">
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Admin Email
-                    </Label>
-                    <Input
-                      id="admin-email"
-                      type="email"
-                      placeholder="Enter admin email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      required
-                      className="h-11 sm:h-12 text-base transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="admin-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Admin Password
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="admin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter admin password (min 8 characters)"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        required
-                        minLength={8}
-                        className="h-11 sm:h-12 text-base pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      <Shield className="h-4 w-4 inline mr-1" />
-                      Admin access required for administrative functions
-                    </p>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full h-11 sm:h-12 text-base bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 dark:from-amber-500 dark:to-orange-500 dark:hover:from-amber-600 dark:hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Signing In...
-                      </div>
-                    ) : (
-                      "Admin Sign In"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            <div className="mt-4 sm:mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {"Don't have an account? "}
-                <Link
-                  href="/signup"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200"
-                >
-                  Sign up here
-                </Link>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4 py-8">
+    <div className="w-full max-w-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <Link
+          href="/"
+          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 text-sm font-medium"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1.5" />
+          Back to Home
+        </Link>
+        <ThemeToggle />
       </div>
+
+      <Card className="shadow-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+        <CardHeader className="text-center pt-7 pb-5 px-6">
+          <div className="flex items-center justify-center space-x-2 mb-3">
+            <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              Smart Scheduler
+            </span>
+          </div>
+
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome Back
+          </CardTitle>
+
+          <CardDescription className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+            Sign in to your account
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="px-6 pb-7">
+          <Tabs
+            value={loginType}
+            onValueChange={(value) => setLoginType(value as "user" | "admin")}
+            className="mb-5"
+          >
+            <TabsList className="grid w-full grid-cols-2 h-11">
+              <TabsTrigger
+                value="user"
+                className="flex items-center space-x-2 text-sm"
+              >
+                <User className="h-4 w-4" />
+                <span>User</span>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="admin"
+                className="flex items-center space-x-2 text-sm"
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* USER TAB */}
+            <TabsContent value="user" className="mt-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Email Address
+                  </Label>
+
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      handleInputChange("email", e.target.value)
+                    }
+                    required
+                    className="h-11 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Password
+                  </Label>
+
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password (min 8 characters)"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      required
+                      minLength={8}
+                      className="h-11 text-sm pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Must be at least 8 characters
+                  </p>
+                </div>
+
+                {/* Remember + Forgot */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                      Remember me
+                    </span>
+                  </label>
+
+                  <Link
+                    href="#"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200 mt-2"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Signing In...
+                    </div>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            {/* ADMIN TAB */}
+            <TabsContent value="admin" className="mt-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Admin Email */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="admin-email"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Admin Email
+                  </Label>
+
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    placeholder="Enter admin email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      handleInputChange("email", e.target.value)
+                    }
+                    required
+                    className="h-11 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
+                  />
+                </div>
+
+                {/* Admin Password */}
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="admin-password"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Admin Password
+                  </Label>
+
+                  <div className="relative">
+                    <Input
+                      id="admin-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter admin password (min 8 characters)"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      required
+                      minLength={8}
+                      className="h-11 text-sm pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Must be at least 8 characters
+                  </p>
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <Shield className="h-4 w-4 inline mr-1" />
+                    Admin access required for administrative functions
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 dark:from-amber-500 dark:to-orange-500 dark:hover:from-amber-600 dark:hover:to-orange-600 shadow-lg hover:shadow-xl transition-all duration-200 mt-2"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Signing In...
+                    </div>
+                  ) : (
+                    "Admin Sign In"
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-5 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200"
+              >
+                Sign up here
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  )
+  </div>
+)
 }

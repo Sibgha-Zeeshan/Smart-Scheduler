@@ -115,4 +115,12 @@ timetable-generation-api/
 └── output/              # Directory for generated output files
 ```
 
+app.py
+│
+├── Setup & Config        → FastAPI, CORS, MongoDB, directories
+├── File Management       → Upload, validate, generate timetable
+├── Auth System           → Register, verify email, login
+├── Admin System          → Approve/reject users, manage history
+└── Timetable Management  → List, download, delete timetables
+
 <!-- Frontend -->
