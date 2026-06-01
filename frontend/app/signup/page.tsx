@@ -12,11 +12,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
+import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState("")
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -62,13 +65,13 @@ export default function SignupPage() {
       const data = await response.json()
 
       if (response.ok) {
+        setRegisteredEmail(formData.email)
+        setShowVerificationDialog(true)
         toast({
           variant: "success",
           title: "Registration Successful!",
-          description: "Your request is pending admin approval. You will be notified once approved.",
+          description: "Please verify your email to continue.",
         })
-        setFormData({ username: "", email: "", password: "", role: "" })
-        setTimeout(() => { router.push("/login") }, 2000)
       } else {
         toast({
           variant: "destructive",
@@ -85,6 +88,17 @@ export default function SignupPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleVerificationSuccess = () => {
+    setShowVerificationDialog(false)
+    setFormData({ username: "", email: "", password: "", role: "" })
+    toast({
+      variant: "success",
+      title: "Email Verified!",
+      description: "Your request is pending admin approval. You will be notified once approved.",
+    })
+    setTimeout(() => { router.push("/login") }, 1500)
   }
 
   return (
@@ -224,6 +238,13 @@ export default function SignupPage() {
             </div>
           </CardContent>
         </Card>
+
+        <EmailVerificationDialog
+          isOpen={showVerificationDialog}
+          onClose={() => setShowVerificationDialog(false)}
+          email={registeredEmail}
+          onVerificationSuccess={handleVerificationSuccess}
+        />
       </div>
     </div>
   )
