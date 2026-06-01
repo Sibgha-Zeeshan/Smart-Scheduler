@@ -159,11 +159,14 @@ export function EmailVerificationDialog({
   }
 
   const handleClose = () => {
-    setIsVerified(false)
-    setCode("")
-    onClose()
     if (isVerified) {
+      setIsVerified(false)
+      setCode("")
+      onClose()
       onVerificationSuccess()
+    } else {
+      setCode("")
+      onClose()
     }
   }
 

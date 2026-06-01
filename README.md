@@ -14,3 +14,12 @@ Timetable scheduling involves organizing academic activities while managing limi
 The expected outcome of this project is an AI-driven timetable scheduling system that automates the process of organizing academic activities such as lectures and lab sessions. The solution will efficiently manage key resources like classrooms, instructors, students, and time slots, resolving hard constraints (e.g., no scheduling conflicts) and optimizing soft constraints (e.g., minimizing gaps). The system will leverage advanced AI techniques like Constraint Satisfaction Problems (CSP), heuristic approaches, and combinatorial search methods to produce a near-optimal timetable in a reasonable time frame.
 
 By using this system, educational institutions can expect significant improvements in resource allocation, reduction in scheduling errors, and enhanced flexibility to adapt to changes in resource availability or academic needs. The automation of scheduling will reduce manual administrative work, allowing administrators to focus on higher-level planning. Overall, the product will deliver a scalable, intelligent, and user-friendly solution that significantly enhances both resource management and the overall academic experience.
+
+### How to run the project locally:
+
+Add env variables 
+run the backend using docker command
+docker compose up --build
+run the frontend using:
+pnpm install
+pnpm dev

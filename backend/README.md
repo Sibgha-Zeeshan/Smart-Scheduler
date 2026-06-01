@@ -10,9 +10,9 @@ This FastAPI application provides endpoints for validating, generating, and down
    pip install -r requirements.txt
    ```
 
-2. Run the API server using the run script:
+2. Run the backend(if docker is installed):
    ```
-   python run.py
+   docker compose up --build
    ```
    
    To enable auto-reload during development:
@@ -21,8 +21,8 @@ This FastAPI application provides endpoints for validating, generating, and down
    ```
 
 3. Access the application:
-   - Web interface: http://localhost:8000/
-   - API documentation: http://localhost:8000/docs
+   - Web interface: http://localhost:3000/
+   - API documentation: http://localhost:3000/docs
 
 ## Using the Application
 
@@ -123,4 +123,4 @@ app.py
 ├── Admin System          → Approve/reject users, manage history
 └── Timetable Management  → List, download, delete timetables
 
-<!-- Frontend -->
+
